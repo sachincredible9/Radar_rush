@@ -7,11 +7,13 @@ import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
 import '../game.dart';
 import '../audio_manager.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'gate.dart';
 import '../level_config.dart';
 
-enum PlaneState { enRoute, landing, landed, taxiing, atGate, takingOff, departed, hold, crashing }
+enum PlaneState { enRoute, landing, landed, taxiing, readyToPark, atGate, takingOff, departed, hold, crashing }
 
-class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, CollisionCallbacks, TapCallbacks {
+class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, CollisionCallbacks, TapCallbacks, DragCallbacks {
   PlaneState state = PlaneState.enRoute;
   double speed = 0; // Initialized in onLoad based on difficulty
   String flightNumber = 'SK-${100 + Random().nextInt(900)}';
@@ -23,6 +25,9 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
   double _crashTimer = 0;
   double _opacity = 1.0;
   double _taxiTimer = 0;
+  double _parkingTimer = 0;
+  bool _canTakeoff = false;
+  Vector2? _readyPosition;
   late TextComponent _label;
 
   // Adaptive size: Larger for iPad
@@ -37,7 +42,9 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
       
     add(CircleHitbox(radius: 20));
     scale = Vector2.all(1.4);
-    targetGate = (gameRef.currentLevel.gates..shuffle()).first.position;
+    
+    _assignTargetGate();
+    
     speed = gameRef.planeBaseSpeed;
     
     AudioManager.playSfx('radar_ping.mp3');
@@ -51,22 +58,33 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
       case 3: position = Vector2(gameRef.size.x + 50, Random().nextDouble() * gameRef.size.y); angle = pi; break;
     }
 
-
-
     _label = TextComponent(
       text: '$flightNumber\n${state.name.toUpperCase()}',
       textRenderer: TextPaint(
-        style: const TextStyle(
+        style: GoogleFonts.outfit(
           color: Colors.white,
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: FontWeight.bold,
-          backgroundColor: Colors.black45,
         ),
       ),
-      anchor: Anchor.topCenter,
-      position: Vector2(size.x / 2, size.y + 5),
+      anchor: Anchor.center,
+      position: Vector2(size.x / 2, size.y + 20),
     );
     add(_label);
+  }
+
+  void _assignTargetGate() {
+    final availableGates = gameRef.currentLevel.gates.where((g) {
+      bool isOccupied = gameRef.world.children.whereType<Gate>().any((gc) => gc.config.position == g.position && gc.isOccupied);
+      bool isTargeted = gameRef.world.children.whereType<Airplane>().any((ap) => ap != this && ap.targetGate == g.position && ap.state != PlaneState.departed && ap.state != PlaneState.crashing);
+      return !isOccupied && !isTargeted;
+    }).toList();
+
+    if (availableGates.isNotEmpty) {
+      targetGate = (availableGates..shuffle()).first.position;
+    } else {
+      targetGate = (gameRef.currentLevel.gates..shuffle()).first.position;
+    }
   }
 
   @override
@@ -146,47 +164,50 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
 
       case PlaneState.taxiing:
         double distToTaxi = position.distanceTo(gameRef.currentLevel.taxiToGate);
-        if (distToTaxi < 20) {
-          targetGate ??= gameRef.currentLevel.gates.first.position;
-          double distToGate = position.distanceTo(targetGate!);
-          speed = (distToGate < 60) ? gameRef.taxiSpeed * 0.4 : gameRef.taxiSpeed;
-          if (distToGate < 30) {
-            state = PlaneState.atGate;
-            speed = 0;
-            angle = 0;
-            position = targetGate!.clone();
-            gameRef.addPoints(500);
-            AudioManager.announce('Flight $flightNumber parked. Ready for departure.');
-          } else {
-            _moveTo(targetGate!, dt, multiplier: 15.0);
-          }
+        if (distToTaxi < 60) {
+          state = PlaneState.readyToPark;
+          speed = 0;
+          position = gameRef.currentLevel.taxiToGate.clone();
+          _readyPosition = position.clone();
+          AudioManager.announce('$flightNumber ready to park. Drag to the RED highlighted gate.');
         } else {
           speed = gameRef.taxiSpeed;
           _moveTo(gameRef.currentLevel.taxiToGate, dt, multiplier: 10.0);
         }
         break;
 
+      case PlaneState.readyToPark:
+        speed = 0;
+        break;
+
       case PlaneState.atGate:
         speed = 0;
         angle = 0;
+        if (!_canTakeoff) {
+          _parkingTimer += dt;
+          if (_parkingTimer >= 4.0) {
+            _canTakeoff = true;
+            AudioManager.announce('$flightNumber serviced and ready for takeoff clearance.');
+          }
+        }
         if (targetGate != null) position = targetGate!;
         break;
       
       case PlaneState.takingOff:
         targetRunway ??= gameRef.getNextRunway();
         _moveTo(targetRunway!.end, dt);
-        speed += 100 * dt;
+        speed += 120 * dt; // Slightly more acceleration
         double distToEnd = position.distanceTo(targetRunway!.end);
         scale = Vector2.all(0.7 + (1 - distToEnd / 500).clamp(0, 0.5));
 
         // Gradual volume reduction as it leaves the screen view
         if (_takeoffPlayer != null) {
-          // Calculate distance to the nearest edge of the 1000x1000 virtual area
-          double margin = 150.0; // Start fading 150 pixels from edge
+          // Fade based on distance to any edge
+          double margin = 200.0; 
           double distToLeft = position.x;
-          double distToRight = 1000 - position.x;
+          double distToRight = gameRef.size.x - position.x;
           double distToTop = position.y;
-          double distToBottom = 1000 - position.y;
+          double distToBottom = gameRef.size.y - position.y;
           
           double minEdgeDist = [distToLeft, distToRight, distToTop, distToBottom].reduce(min);
           double vol = (minEdgeDist / margin).clamp(0, 1.0);
@@ -196,9 +217,26 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
         if (distToEnd < 10) {
            state = PlaneState.departed;
            gameRef.addPoints(1500, isTakeoff: true);
-           _takeoffPlayer?.stop();
-           _takeoffPlayer = null;
-           removeFromParent();
+           _taxiTimer = 0; // Reuse taxiTimer as fade-out timer
+        }
+        break;
+
+      case PlaneState.departed:
+        // Keep moving in the current direction while fading out
+        position += Vector2(cos(angle), sin(angle)) * speed * dt;
+        speed += 150 * dt;
+        _taxiTimer += dt;
+        
+        if (_takeoffPlayer != null) {
+          double vol = (1.0 - _taxiTimer / 2.0).clamp(0, 1.0);
+          _takeoffPlayer!.setVolume(vol);
+          if (vol <= 0) {
+            _takeoffPlayer?.stop();
+            _takeoffPlayer = null;
+            removeFromParent();
+          }
+        } else {
+          if (_taxiTimer > 2.0) removeFromParent();
         }
         break;
       
@@ -232,18 +270,25 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
   void _moveTo(Vector2 target, double dt, {double multiplier = 3.0}) {
     Vector2 dir = target - position;
     double dist = dir.length;
-    if (dist > 2) {
+    if (dist > 5) {
       double targetAngle = atan2(dir.y, dir.x);
       double angleDiff = targetAngle - angle;
       while (angleDiff > pi) angleDiff -= 2 * pi;
       while (angleDiff < -pi) angleDiff += 2 * pi;
+      
+      // Reduce rotation speed as we get closer to prevent shaking
+      double rotationMultiplier = (dist < 50) ? multiplier * 0.5 : multiplier;
       if (angleDiff.abs() < 0.05) angle = targetAngle;
-      else angle += angleDiff * dt * multiplier;
+      else angle += angleDiff * dt * rotationMultiplier;
+      
       while (angle > pi) angle -= 2 * pi;
       while (angle < -pi) angle += 2 * pi;
+      
       double step = speed * dt;
       if (step > dist) step = dist;
       position += Vector2(cos(angle), sin(angle)) * step;
+    } else {
+      position = target.clone();
     }
   }
 
@@ -252,6 +297,44 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
     if (state == PlaneState.crashing) return;
     gameRef.selectPlane(this);
     isSelected = true;
+  }
+
+  @override
+  void onDragStart(DragStartEvent event) {
+    if (state == PlaneState.readyToPark) {
+      gameRef.selectPlane(this);
+      isSelected = true;
+    }
+  }
+
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    if (state == PlaneState.readyToPark) {
+      position += event.localDelta;
+    }
+  }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    if (state == PlaneState.readyToPark && targetGate != null) {
+      double dist = position.distanceTo(targetGate!);
+      // Strict precision: must be very close to the gate center (within 30 pixels)
+      if (dist < 30) {
+        state = PlaneState.atGate;
+        position = targetGate!.clone(); // Pixel-perfect alignment
+        angle = 0;
+        _parkingTimer = 0;
+        _canTakeoff = false;
+        gameRef.addPoints(500);
+        AudioManager.announce('$flightNumber docked successfully. Ground servicing started.');
+      } else {
+        // Snap back to the apron entry point
+        if (_readyPosition != null) {
+          position = _readyPosition!.clone();
+          AudioManager.announce('Incorrect gate. Move $flightNumber to the RED designated gate.');
+        }
+      }
+    }
   }
 
   void command(String cmd) {
@@ -269,12 +352,21 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
         AudioManager.announce('$flightNumber enter holding pattern.');
         break;
       case 'TAKEOFF':
-        if (state == PlaneState.atGate || state == PlaneState.landed || (state == PlaneState.taxiing && speed == 0)) {
+        if (state == PlaneState.landed || (state == PlaneState.atGate && _canTakeoff)) {
+          final wasLanded = state == PlaneState.landed;
           state = PlaneState.takingOff;
           targetRunway = gameRef.getNextRunway();
+          // Give initial speed for immediate takeoff from landed state
+          if (wasLanded) speed = 150;
+          
           AudioManager.playTakeoffSound().then((player) {
             _takeoffPlayer = player;
           });
+          if (wasLanded) {
+             AudioManager.announce('$flightNumber immediate takeoff cleared.');
+          }
+        } else if (state == PlaneState.atGate && !_canTakeoff) {
+          AudioManager.announce('$flightNumber is still being serviced.');
         }
         break;
       case 'STOP':
@@ -292,7 +384,14 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
       case 'TAXI':
         if (state == PlaneState.landed) {
           state = PlaneState.taxiing;
-          AudioManager.announce('$flightNumber taxi to gate.');
+          // Refresh target gate if current one became occupied or was never assigned correctly
+          bool isOccupied = targetGate != null && gameRef.world.children.whereType<Gate>().any((g) => g.config.position == targetGate && g.isOccupied);
+          if (targetGate == null || isOccupied) {
+            _assignTargetGate();
+          }
+          gameRef.selectPlane(this);
+          isSelected = true;
+          AudioManager.announce('$flightNumber taxiing to apron. Look for the RED designated gate.');
         }
         break;
       case 'TURN_L': 

@@ -24,7 +24,23 @@ class Gate extends PositionComponent with HasGameRef<AirplaneLandingGame>, TapCa
 
   @override
   void render(Canvas canvas) {
-    Color gateColor = isOccupied ? Colors.red : (isSelected ? Colors.green : Colors.green.withOpacity(0.2));
+    Airplane? designatedPlane = gameRef.world.children
+        .whereType<Airplane>()
+        .where((p) => p.targetGate == config.position && 
+                     (p.state == PlaneState.taxiing || p.state == PlaneState.readyToPark))
+        .firstOrNull;
+
+    bool isDesignated = designatedPlane != null;
+    bool isDesignatedAndSelected = isDesignated && designatedPlane == gameRef.selectedPlane;
+
+    Color gateColor = isOccupied 
+        ? Colors.redAccent 
+        : (isDesignatedAndSelected 
+            ? Colors.red 
+            : (isDesignated 
+                ? Colors.red.withOpacity(0.4) 
+                : (isSelected ? Colors.green : Colors.green.withOpacity(0.2))));
+    
     final paint = Paint()
       ..color = gateColor.withOpacity(0.4)
       ..style = PaintingStyle.fill;
