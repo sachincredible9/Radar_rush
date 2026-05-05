@@ -148,6 +148,20 @@ h1, h2, h3, .logo span {
   gap: 1.5rem;
 }
 
+.coming-soon-badge {
+  background: rgba(0, 242, 255, 0.1);
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  box-shadow: 0 0 20px var(--primary-glow);
+  text-transform: uppercase;
+}
+
 .store-btn img {
   height: 48px;
   transition: transform 0.3s;
@@ -226,6 +240,55 @@ h1, h2, h3, .logo span {
 
 .feature-card p {
   color: var(--text-dim);
+}
+
+/* Gallery */
+.gallery {
+  padding: 10rem 0;
+  background: #000;
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.gallery-item {
+  position: relative;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  transition: transform 0.3s;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  transition: filter 0.3s;
+}
+
+.gallery-item span {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 1.5rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.9));
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.gallery-item:hover {
+  transform: scale(1.02);
+}
+
+.gallery-item:hover img {
+  filter: brightness(1.2);
 }
 
 /* Showcase */
