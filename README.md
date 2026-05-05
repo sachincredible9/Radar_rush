@@ -17,13 +17,16 @@ A premium, high-stakes Air Traffic Control simulation built with Flutter and Fla
 
 ### 3. Realistic Airport Operations
 - **Authentic IATA Codes**: Fly into Heathrow (LHR), JFK, Dubai (DXB), Changi (SIN), and more.
-- **Smart Ground Handling**: Automated "Ready to Takeoff" detection when parked at terminal gates.
-- **Multi-Phase ATC**: Manage En-Route, Holding, Landing, Taxiing, and Departure phases.
+- **Manual Parking Phase**: New interactive gameplay—planes reach the apron and require the user to **DRAG** them to the correct highlighted RED gate.
+- **Unique Gate Management**: Intelligent slot allocation ensures every taxiing plane has a unique, dedicated parking target.
+- **Smart Ground Handling**: Mandatory 4-second servicing interval at terminal gates before takeoff clearance.
+- **Multi-Phase ATC**: Manage En-Route, Holding, Landing, Taxiing, Ready-to-Park, and Departure phases.
 
 ### 4. Immersion & Feedback
 - **ATC Voice Announcements**: Real-time synthesized voice feedback for all major events (Touchdown, Parked, Milestones).
 - **Radar Entry Pings**: Instant audio-visual alerts (Radar Ping + Flight Number) when new aircraft enter the sector.
-- **Dynamic Engine Audio**: Realistic 1.8MB engine roar for takeoffs that dynamically fades as the aircraft leaves the airspace.
+- **Immersive Takeoff Audio**: Realistic engine roar that dynamically fades and drifts away as the aircraft departs the radar range.
+- **Precision Drag-Drop**: High-precision collision detection (30px) for parking at gates with automatic snap-back for invalid positions.
 - **Ambient Atmosphere**: Immersive airport crowd ambiance on all menu and selection screens.
 - **Milestone Celebrations**: "Hurrah!" voice announcements and festive balloon particle effects at major score milestones (1k, 3k, 5k, etc.).
 - **Premium Aesthetics**: Dark-themed industrial design with vibrant neon accents and high-contrast typography.
@@ -78,8 +81,9 @@ The **Flight Manual & Info** section includes a functional training deck where y
 
 - **Select Plane**: Tap any aircraft in the airspace to bring up its command panel.
 - **LAND**: Clears plane for approach (now uses rotated runway logic).
-- **TAXI**: Directs landed planes to their assigned terminal gate (available only after touchdown).
-- **TAKEOFF**: Clears parked or landed planes for departure (available only after touchdown).
+- **TAXI**: Directs landed planes to the apron zone (available only after touchdown).
+- **DRAG (NEW)**: Manually drag aircraft from the apron to the RED highlighted gate to dock.
+- **TAKEOFF**: Clears parked OR landed planes for departure.
 - **HOLD**: Forces plane into a circular holding pattern.
 - **TURN L/R**: Adjusts aircraft heading in 30° increments.
 - **+/-**: Incremental speed adjustments.
