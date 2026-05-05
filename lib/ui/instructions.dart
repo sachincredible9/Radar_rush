@@ -15,6 +15,21 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
   String? _playingLabel;
 
   @override
+  void initState() {
+    super.initState();
+    // Play selection sound once when manual opens
+    AudioManager.playSelectionMusic();
+  }
+
+  void _dismissManual() {
+    AudioManager.stopAllSfx(); // Clean up if user played crowd in manual
+    if (!AudioManager.isMuted) {
+      AudioManager.playCrowdAmbiance();
+    }
+    widget.game.overlays.remove('Instructions');
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isIPad = screenWidth > 800;
@@ -55,7 +70,7 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
                   const SizedBox(width: 10),
                     IconButton(
                       icon: Icon(Icons.close, color: Colors.white, size: isIPad ? 40 : 30),
-                      onPressed: () => widget.game.overlays.remove('Instructions'),
+                      onPressed: _dismissManual,
                     ),
                   ],
                 ),
@@ -126,10 +141,7 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
                 const SizedBox(height: 30),
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      AudioManager.stopCrowdAmbiance(); // Clean up if user played crowd in manual
-                      widget.game.overlays.remove('Instructions');
-                    },
+                    onPressed: _dismissManual,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan.withOpacity(0.2),
                     side: const BorderSide(color: Colors.cyan, width: 2),

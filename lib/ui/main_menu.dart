@@ -83,7 +83,10 @@ class _MainMenuState extends State<MainMenu> {
               ).animate().scale(delay: 1.seconds).shimmer(duration: 2.seconds),
               const SizedBox(height: 20),
               TextButton(
-                onPressed: () => widget.game.overlays.add('Instructions'),
+                onPressed: () {
+                  AudioManager.stopCrowdAmbiance();
+                  widget.game.overlays.add('Instructions');
+                },
                 child: Text(
                   'FLIGHT MANUAL & INFO',
                   style: GoogleFonts.inter(color: Colors.cyan.withOpacity(0.7), fontSize: 12, letterSpacing: 2),
