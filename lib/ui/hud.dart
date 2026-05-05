@@ -262,7 +262,13 @@ class _HUDState extends State<HUD> {
         _buildCompactActionBtn(
           AudioManager.isMuted ? Icons.volume_off : Icons.volume_up,
           AudioManager.isMuted ? Colors.red : Colors.cyanAccent,
-          () => setState(() => AudioManager.toggleMute()),
+          () {
+            AudioManager.toggleMute();
+            if (!AudioManager.isMuted) {
+              AudioManager.playBackground();
+            }
+            setState(() {});
+          },
           isIPad
         ),
         const SizedBox(width: 8),
