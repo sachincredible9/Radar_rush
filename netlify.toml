@@ -1,0 +1,14 @@
+[build]
+  # The directory where the site's source code is located
+  base = "landing_page"
+  
+  # The command to build the site
+  command = "npm run build"
+  
+  # The directory that Netlify will deploy
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

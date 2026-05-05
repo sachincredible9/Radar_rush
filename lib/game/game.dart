@@ -9,6 +9,7 @@ import 'components/airport_map.dart';
 import 'components/gate.dart';
 import 'level_config.dart';
 import 'audio_manager.dart';
+import '../analytics_manager.dart';
 
 enum GameState { menu, playing, gameOver, success }
 
@@ -24,7 +25,8 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
   int takeoffs = 0;
   int collisionsCount = 0;
   int nextRunwayIndex = 0;
-  final int maxCollisions = 5; // Updated to 5 as requested
+  double maxSpeedObserved = 0;
+  final int maxCollisions = 5; 
 
   // Difficulty configuration (default easy)
   Difficulty difficulty = Difficulty.easy;
@@ -71,6 +73,10 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     // Set spawnTimer to trigger the first plane after 2.5 seconds
     spawnTimer = _currentSpawnInterval() - 2.5;
     selectedPlane = null;
+    maxSpeedObserved = planeBaseSpeed;
+    
+    AnalyticsManager.logGameStarted(currentLevel.name, difficulty.name);
+    AnalyticsManager.logMenuView('GameView');
     
     // Clear all components except map
     final planes = world.children.whereType<Airplane>().toList();
@@ -115,6 +121,11 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
       if (spawnTimer > _currentSpawnInterval()) {
         world.add(Airplane());
         spawnTimer = 0;
+      }
+
+      // Track the highest speed reached during this session
+      if (planeBaseSpeed > maxSpeedObserved) {
+        maxSpeedObserved = planeBaseSpeed;
       }
     }
   }
@@ -220,5 +231,14 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     overlays.remove('HUD');
     overlays.add('GameOver');
     if (!success) AudioManager.playSfx('collision.mp3');
+
+    AnalyticsManager.logGameOver(
+      score: score, 
+      landings: landings, 
+      takeoffs: takeoffs, 
+      airport: currentLevel.name, 
+      maxSpeedReached: maxSpeedObserved
+    );
+    AnalyticsManager.logMenuView('GameOver');
   }
 }
