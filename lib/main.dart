@@ -8,9 +8,11 @@ import 'ui/game_over.dart';
 import 'game/game.dart';
 
 import 'game/audio_manager.dart';
+import 'analytics_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AnalyticsManager.init();
   await AudioManager.init();
   runApp(const GameApp());
 }
@@ -42,6 +44,16 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     game = AirplaneLandingGame();
+    
+    // Log initial app launch metrics
+    AnalyticsManager.logAppLaunch();
+    
+    // Log screen details after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final size = MediaQuery.of(context).size;
+      AnalyticsManager.logScreenDetails(size);
+      AnalyticsManager.logMenuView('MainMenu');
+    });
   }
 
   @override

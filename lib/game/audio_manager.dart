@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:vibration/vibration.dart';
+import '../analytics_manager.dart';
 
 class AudioManager {
   static bool _initialized = false;
@@ -40,6 +41,7 @@ class AudioManager {
 
   static void toggleMute() {
     isMuted = !isMuted;
+    AnalyticsManager.logAudioToggle(isMuted);
     if (isMuted) {
       try {
         FlameAudio.bgm.stop();

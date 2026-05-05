@@ -7,6 +7,7 @@ import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
 import '../game.dart';
 import '../audio_manager.dart';
+import '../../analytics_manager.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'gate.dart';
 import '../level_config.dart';
@@ -153,6 +154,7 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
           speed = 0;
           _taxiTimer = 0;
           gameRef.addPoints(500, isLanding: true);
+          AnalyticsManager.logFlightAction('landing', flightNumber);
           AudioManager.announce('$flightNumber touchdown. Taxiing to gate.');
           scale = Vector2.all(0.7);
         }
@@ -217,6 +219,7 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
         if (distToEnd < 10) {
            state = PlaneState.departed;
            gameRef.addPoints(1500, isTakeoff: true);
+           AnalyticsManager.logFlightAction('takeoff', flightNumber);
            _taxiTimer = 0; // Reuse taxiTimer as fade-out timer
         }
         break;
