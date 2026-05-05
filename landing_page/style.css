@@ -1,10 +1,11 @@
 :root {
-  --primary: #00f2ff;
-  --primary-glow: rgba(0, 242, 255, 0.5);
-  --secondary: #ff0055;
+  --primary: #00e5ff; /* Matches Flutter Colors.cyanAccent/cyan */
+  --primary-glow: rgba(0, 229, 255, 0.4);
+  --secondary: #ff5252; /* Matches Flutter Colors.redAccent */
+  --accent: #ffeb3b; /* Matches Flutter Colors.yellow */
   --bg-dark: #050505;
   --card-bg: rgba(255, 255, 255, 0.03);
-  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.08);
   --text-main: #e0e0e0;
   --text-dim: #999;
 }
@@ -265,6 +266,11 @@ h1, h2, h3, .logo span {
   color: var(--text-dim);
   border-left: 3px solid var(--primary);
   padding-left: 1.5rem;
+  transition: border-color 0.3s;
+}
+
+.audio-list li:hover {
+  border-color: var(--accent);
 }
 
 .audio-list strong {
