@@ -28,8 +28,8 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
 
   // Difficulty configuration (default easy)
   Difficulty difficulty = Difficulty.easy;
-  double planeBaseSpeed = 170.0; // Set to 170 as requested
-  double taxiSpeed = 30.0; // gentle taxi speed
+  double planeBaseSpeed = 170.0; 
+  double taxiSpeed = 35.0; // slightly faster taxi for excitement
 
   // Use a fixed virtual coordinate system for consistent layout across orientations
   final Vector2 virtualSize = Vector2(1000, 1000);
@@ -108,6 +108,9 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     super.update(dt);
     elapsedTime += dt;
     if (state == GameState.playing) {
+      // Dynamic Difficulty: Increase speed by 5 units every 5000 points
+      planeBaseSpeed = 170.0 + (score ~/ 5000) * 8.0;
+      
       spawnTimer += dt;
       if (spawnTimer > _currentSpawnInterval()) {
         world.add(Airplane());
@@ -117,8 +120,10 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
   }
 
   double _currentSpawnInterval() {
-    // Aggressive Spawn Scaling: 12s base, -2s per 10k score milestone, min 1.5s
-    return max(1.5, 12.0 - (score ~/ 10000) * 2.0);
+    // Progressive Spawn Scaling: Starts at 14s, drops smoothly to 2s at 100k points
+    double baseInterval = 14.0;
+    double reduction = (score / 10000) * 1.2;
+    return max(2.0, baseInterval - reduction);
   }
 
   Runway getNextRunway() {

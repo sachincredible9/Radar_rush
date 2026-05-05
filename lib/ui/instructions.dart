@@ -15,6 +15,21 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
   String? _playingLabel;
 
   @override
+  void initState() {
+    super.initState();
+    // Play selection sound once when manual opens
+    AudioManager.playSelectionMusic();
+  }
+
+  void _dismissManual() {
+    AudioManager.stopAllSfx(); // Clean up if user played crowd in manual
+    if (!AudioManager.isMuted) {
+      AudioManager.playCrowdAmbiance();
+    }
+    widget.game.overlays.remove('Instructions');
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isIPad = screenWidth > 800;
@@ -55,7 +70,7 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
                   const SizedBox(width: 10),
                     IconButton(
                       icon: Icon(Icons.close, color: Colors.white, size: isIPad ? 40 : 30),
-                      onPressed: () => widget.game.overlays.remove('Instructions'),
+                      onPressed: _dismissManual,
                     ),
                   ],
                 ),
@@ -65,8 +80,9 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
                     children: [
                       _buildSection('STATUS INDICATORS', isIPad, [
                         _buildRow(Icons.airplanemode_active, Colors.orange, 'WAITING TAXI', 'Aircraft has landed and is waiting for taxi instructions.', isIPad),
-                        _buildRow(Icons.local_taxi, Colors.cyan, 'TAXIING', 'Aircraft is moving towards its assigned gate.', isIPad),
-                        _buildRow(Icons.check_circle, Colors.greenAccent, 'AT GATE / READY', 'Aircraft is parked or ready for takeoff clearance.', isIPad),
+                        _buildRow(Icons.local_taxi, Colors.cyan, 'TAXIING', 'Aircraft is moving towards the apron zone.', isIPad),
+                        _buildRow(Icons.drag_indicator, Colors.redAccent, 'READY TO PARK', 'Aircraft is at the apron. DRAG to the RED gate to dock.', isIPad),
+                        _buildRow(Icons.check_circle, Colors.greenAccent, 'AT GATE / READY', 'Aircraft is parked. Needs 4s servicing before takeoff.', isIPad),
                         _buildRow(Icons.loop, Colors.purpleAccent, 'HOLDING', 'Aircraft is orbiting the airport.', isIPad),
                       ]),
                       const SizedBox(height: 40),
@@ -79,9 +95,9 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
                       const SizedBox(height: 40),
                       _buildSection('ATC COMMANDS', isIPad, [
                         _buildCmdRow('LAND', 'Clears plane to land on the nearest runway.', isIPad),
-                        _buildCmdRow('TAXI', 'Directs landed planes to their parking gate.', isIPad),
-                        _buildCmdRow('TAKEOFF', 'Clears parked planes for immediate departure.', isIPad),
-                        _buildCmdRow('HOLD', 'Forces plane into a circular holding pattern.', isIPad),
+                        _buildCmdRow('TAXI', 'Directs landed planes to the apron for parking.', isIPad),
+                        _buildCmdRow('TAKEOFF', 'Clears parked OR landed planes for immediate departure.', isIPad),
+                        _buildCmdRow('DRAG', 'Manual: Drag plane from apron to the highlighted RED gate.', isIPad),
                       ]),
                       const SizedBox(height: 40),
                       _buildSection('AUDIO DICTIONARY', isIPad, [
@@ -126,10 +142,7 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
                 const SizedBox(height: 30),
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      AudioManager.stopCrowdAmbiance(); // Clean up if user played crowd in manual
-                      widget.game.overlays.remove('Instructions');
-                    },
+                    onPressed: _dismissManual,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.cyan.withOpacity(0.2),
                     side: const BorderSide(color: Colors.cyan, width: 2),

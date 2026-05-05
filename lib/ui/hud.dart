@@ -129,29 +129,43 @@ class _HUDState extends State<HUD> {
   }
 
   Widget _buildUnifiedTopBar(Airplane? selectedPlane, bool isPaused, double baseFontSize, double headerFontSize, bool isIPad) {
+    final screenWidth = MediaQuery.of(context).size.width;
     return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-        decoration: _topBarDecoration(),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (selectedPlane != null) ...[
-              _buildPlaneInfo(selectedPlane, headerFontSize, baseFontSize),
-              const SizedBox(width: 30),
-              _topBarDivider(isIPad),
-              const SizedBox(width: 30),
-              _topBarStatusItem('SPD', '${selectedPlane.speed.toInt()}', Colors.yellow, baseFontSize),
-              const SizedBox(width: 24),
-              _topBarStatusItem('HDG', '${(selectedPlane.angle * 180 / 3.14).toInt().abs()}°', Colors.cyan, baseFontSize),
-              const SizedBox(width: 30),
-              _topBarDivider(isIPad),
-              const SizedBox(width: 30),
-            ],
-            _buildScoreAndLives(baseFontSize, isIPad),
-            const SizedBox(width: 40),
-            _buildActionButtonsGroup(isPaused, isIPad),
-          ],
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: screenWidth - 60),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: _topBarDecoration(),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (selectedPlane != null) ...[
+                  _buildPlaneInfo(selectedPlane, headerFontSize, baseFontSize),
+                  const SizedBox(width: 16),
+                  _topBarDivider(isIPad),
+                  const SizedBox(width: 16),
+                  _topBarStatusItem(
+                    'SPD', 
+                    '${selectedPlane.speed.toInt()}', 
+                    Colors.yellow, 
+                    baseFontSize,
+                    onPlus: () => selectedPlane.command('FAST'),
+                    onMinus: () => selectedPlane.command('SLOW'),
+                  ),
+                  const SizedBox(width: 12),
+                  _topBarStatusItem('HDG', '${(selectedPlane.angle * 180 / 3.14).toInt().abs()}°', Colors.cyan, baseFontSize),
+                  const SizedBox(width: 16),
+                  _topBarDivider(isIPad),
+                  const SizedBox(width: 16),
+                ],
+                _buildScoreAndLives(baseFontSize, isIPad),
+                const SizedBox(width: 20),
+                _buildActionButtonsGroup(isPaused, isIPad),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -165,7 +179,24 @@ class _HUDState extends State<HUD> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           if (selectedPlane != null) 
-            _buildPlaneInfo(selectedPlane, headerFontSize, baseFontSize)
+            Row(
+              children: [
+                _buildPlaneInfo(selectedPlane, headerFontSize, baseFontSize),
+                const SizedBox(width: 12),
+                _topBarDivider(false),
+                const SizedBox(width: 12),
+                _topBarStatusItem(
+                  'SPD', 
+                  '${selectedPlane.speed.toInt()}', 
+                  Colors.yellow, 
+                  baseFontSize,
+                  onPlus: () => selectedPlane.command('FAST'),
+                  onMinus: () => selectedPlane.command('SLOW'),
+                ),
+                const SizedBox(width: 8),
+                _topBarStatusItem('HDG', '${(selectedPlane.angle * 180 / 3.14).toInt().abs()}°', Colors.cyan, baseFontSize),
+              ],
+            )
           else
             Text('RADAR ACTIVE', style: GoogleFonts.orbitron(color: Colors.cyan, fontSize: baseFontSize, fontWeight: FontWeight.bold)),
           
@@ -225,9 +256,9 @@ class _HUDState extends State<HUD> {
           'SCORE: ${widget.game.score}',
           style: GoogleFonts.orbitron(color: Colors.yellow, fontSize: baseFontSize, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(width: 15),
+        const SizedBox(width: 10),
         _topBarDivider(isIPad),
-        const SizedBox(width: 15),
+        const SizedBox(width: 10),
         Text(
           'LIVES: ${widget.game.maxCollisions - widget.game.collisionsCount}',
           style: GoogleFonts.orbitron(
@@ -258,11 +289,17 @@ class _HUDState extends State<HUD> {
           },
           isIPad
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 4),
         _buildCompactActionBtn(
           AudioManager.isMuted ? Icons.volume_off : Icons.volume_up,
           AudioManager.isMuted ? Colors.red : Colors.cyanAccent,
-          () => setState(() => AudioManager.toggleMute()),
+          () {
+            AudioManager.toggleMute();
+            if (!AudioManager.isMuted) {
+              AudioManager.playBackground();
+            }
+            setState(() {});
+          },
           isIPad
         ),
         const SizedBox(width: 8),
@@ -301,12 +338,31 @@ class _HUDState extends State<HUD> {
     );
   }
 
-  Widget _topBarStatusItem(String label, String value, Color color, double baseFontSize) {
+  Widget _topBarStatusItem(String label, String value, Color color, double baseFontSize, {VoidCallback? onPlus, VoidCallback? onMinus}) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(label, style: GoogleFonts.inter(color: Colors.white38, fontSize: baseFontSize * 0.5)),
-        Text(value, style: GoogleFonts.orbitron(color: color, fontSize: baseFontSize * 0.8, fontWeight: FontWeight.bold)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (onMinus != null) 
+              IconButton(
+                icon: const Icon(Icons.remove, color: Colors.red, size: 14),
+                onPressed: onMinus,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            Text(value, style: GoogleFonts.orbitron(color: color, fontSize: baseFontSize * 0.8, fontWeight: FontWeight.bold)),
+            if (onPlus != null) 
+              IconButton(
+                icon: const Icon(Icons.add, color: Colors.green, size: 14),
+                onPressed: onPlus,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+          ],
+        ),
       ],
     );
   }

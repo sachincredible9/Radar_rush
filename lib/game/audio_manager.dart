@@ -47,8 +47,6 @@ class AudioManager {
         _selectionSoundRequested = false;
         _tts.stop();
       } catch (_) {}
-    } else {
-      playBackground();
     }
   }
 
