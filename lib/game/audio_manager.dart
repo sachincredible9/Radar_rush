@@ -59,6 +59,12 @@ class AudioManager {
     } catch (_) {}
   }
 
+  static void stopBackground() {
+    try {
+      FlameAudio.bgm.stop();
+    } catch (_) {}
+  }
+
   static void playCrowdAmbiance() {
     if (!_initialized || isMuted) return;
     try {
@@ -130,6 +136,22 @@ class AudioManager {
   static void stopVoice() {
     try {
       _tts.stop();
+    } catch (_) {}
+  }
+
+  static void pauseAll() {
+    try {
+      FlameAudio.bgm.pause();
+      _tts.stop();
+      _manualTakeoffPlayer?.pause();
+    } catch (_) {}
+  }
+
+  static void resumeAll() {
+    if (isMuted) return;
+    try {
+      FlameAudio.bgm.resume();
+      _manualTakeoffPlayer?.resume();
     } catch (_) {}
   }
 

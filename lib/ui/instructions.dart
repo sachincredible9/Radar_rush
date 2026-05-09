@@ -22,11 +22,8 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
   }
 
   void _dismissManual() {
-    AudioManager.stopAllSfx(); // Clean up if user played crowd in manual
-    if (!AudioManager.isMuted) {
-      AudioManager.playCrowdAmbiance();
-    }
-    widget.game.resumeEngine(); // Resume gameplay
+    AudioManager.resumeAll(); // Resume all audio (bgm, sfx)
+    widget.game.resumeEngine(); // Resume gameplay loop
     widget.game.overlays.remove('Instructions');
   }
 

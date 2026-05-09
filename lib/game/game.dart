@@ -100,6 +100,19 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     selectedPlane = null;
     overlays.clear();
     overlays.add('MainMenu');
+    AudioManager.stopBackground();
+  }
+
+  void backToLevelSelector() {
+    state = GameState.menu;
+    // Clear planes and particles, but keep world clean
+    world.removeAll(world.children.whereType<Airplane>().toList());
+    selectedPlane = null;
+    overlays.clear();
+    overlays.add('LevelSelector');
+    
+    AudioManager.stopBackground();
+    AudioManager.playSelectionMusic();
   }
 
   void selectPlane(Airplane plane) {

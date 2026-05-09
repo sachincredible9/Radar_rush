@@ -43,14 +43,17 @@ class _HUDState extends State<HUD> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final screenWidth = size.width;
-    final screenHeight = size.height;
-    final isIPad = screenWidth > 800;
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+    final paddingTop = MediaQuery.of(context).padding.top;
+    
+    final isIPad = screenWidth > 800 || screenHeight > 1000;
     final isShortScreen = screenHeight < 700;
     
-    final baseFontSize = isIPad ? 22.0 : (isShortScreen ? 10.0 : 12.0);
-    final headerFontSize = isIPad ? 28.0 : (isShortScreen ? 14.0 : 16.0);
+    // Proportional font sizing
+    final double baseFontSize = isIPad ? 22 : (isShortScreen ? 13 : 15);
+    final double headerFontSize = isIPad ? 32 : (isShortScreen ? 18 : 22);
 
     return StreamBuilder(
       stream: Stream.periodic(const Duration(milliseconds: 100)),
@@ -62,17 +65,23 @@ class _HUDState extends State<HUD> {
           children: [
             // Top Control Bar(s)
             Positioned(
-              top: isIPad ? 60 : (isShortScreen ? 25 : 50), 
-              left: 12,
-              right: 12,
+              top: isIPad ? 60 : (isShortScreen ? max(10.0, paddingTop) : max(45.0, paddingTop + 10)), 
+              left: isIPad ? 40 : 8,
+              right: isIPad ? 40 : 8,
               child: isIPad 
                 ? _buildUnifiedTopBar(selectedPlane, isPaused, baseFontSize, headerFontSize, isIPad)
-                : _buildMobileStatsBar(selectedPlane, baseFontSize, headerFontSize, isPaused, isShortScreen),
+                : Column(
+                    children: [
+                      _buildMobileStatsBar(selectedPlane, baseFontSize, headerFontSize, isPaused, isShortScreen),
+                      SizedBox(height: isShortScreen ? 6 : 12),
+                      _buildMobileControlsBar(isPaused, isIPad, isShortScreen),
+                    ],
+                  ),
             ),
 
             Positioned(
-              bottom: isShortScreen ? 12 : 30,
-              left: 12,
+              bottom: isShortScreen ? 8 : 30,
+              left: isShortScreen ? 8 : 12,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.8),
@@ -80,10 +89,12 @@ class _HUDState extends State<HUD> {
                   border: Border.all(color: Colors.cyan.withOpacity(0.3)),
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.info_outline, color: Colors.white, size: isIPad ? 40 : (isShortScreen ? 20 : 28)),
+                  padding: EdgeInsets.all(isShortScreen ? 4 : 8),
+                  constraints: BoxConstraints(),
+                  icon: Icon(Icons.info_outline, color: Colors.white, size: isIPad ? 40 : (isShortScreen ? 18 : 28)),
                   onPressed: () {
                     widget.game.pauseEngine();
-                    AudioManager.stopVoice();
+                    AudioManager.pauseAll();
                     widget.game.overlays.add('Instructions');
                   },
                 ),
@@ -177,7 +188,7 @@ class _HUDState extends State<HUD> {
 
   Widget _buildMobileStatsBar(Airplane? selectedPlane, double baseFontSize, double headerFontSize, bool isPaused, bool isShortScreen) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: isShortScreen ? 10 : 16, vertical: isShortScreen ? 4 : 8),
+      padding: EdgeInsets.symmetric(horizontal: isShortScreen ? 12 : 16, vertical: isShortScreen ? 6 : 10),
       decoration: _topBarDecoration(),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -187,42 +198,31 @@ class _HUDState extends State<HUD> {
               children: [
                 if (selectedPlane != null) ...[
                   _buildPlaneInfo(selectedPlane, headerFontSize, baseFontSize),
-                  SizedBox(width: isShortScreen ? 6 : 12),
+                  SizedBox(width: isShortScreen ? 4 : 10),
                   _topBarDivider(false),
-                  SizedBox(width: isShortScreen ? 6 : 12),
+                  SizedBox(width: isShortScreen ? 4 : 10),
                   _topBarStatusItem(
                     'SPD', 
                     '${selectedPlane.speed.toInt()}', 
                     Colors.yellow, 
-                    baseFontSize,
+                    isShortScreen ? baseFontSize * 0.9 : baseFontSize,
                     onPlus: () => selectedPlane.command('FAST'),
                     onMinus: () => selectedPlane.command('SLOW'),
                   ),
-                  SizedBox(width: isShortScreen ? 4 : 8),
-                  _topBarStatusItem('HDG', '${(selectedPlane.angle * 180 / 3.14).toInt().abs()}°', Colors.cyan, baseFontSize),
+                  SizedBox(width: isShortScreen ? 4 : 10),
+                  _topBarStatusItem('HDG', '${(selectedPlane.angle * 180 / 3.14).toInt().abs()}°', Colors.cyan, isShortScreen ? baseFontSize * 0.9 : baseFontSize),
                 ] else
                   Text('RADAR ACTIVE', style: GoogleFonts.orbitron(color: Colors.cyan, fontSize: baseFontSize, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
-          
-          Row(
-            children: [
-              if (isShortScreen) ...[
-                _topBarDivider(false),
-                const SizedBox(width: 8),
-                _buildActionButtonsGroup(isPaused, false),
-                const SizedBox(width: 8),
-              ],
-              _topBarDivider(false),
-              SizedBox(width: isShortScreen ? 8 : 12),
-              _buildScoreAndLives(baseFontSize, false),
-            ],
-          ),
+          _buildScoreAndLives(baseFontSize, false),
         ],
       ),
     );
   }
+
+
 
   Widget _buildMobileControlsBar(bool isPaused, bool isIPad, bool isShortScreen) {
     return Container(
@@ -244,42 +244,62 @@ class _HUDState extends State<HUD> {
   }
 
   Widget _buildPlaneInfo(Airplane plane, double headerFontSize, double baseFontSize) {
+    final isShortScreen = MediaQuery.of(context).size.height < 700;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          plane.flightNumber,
-          style: GoogleFonts.orbitron(color: Colors.redAccent, fontSize: headerFontSize * 0.8, fontWeight: FontWeight.bold),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            plane.flightNumber,
+            style: GoogleFonts.orbitron(
+              color: Colors.redAccent, 
+              fontSize: isShortScreen ? headerFontSize * 0.7 : headerFontSize * 0.85, 
+              fontWeight: FontWeight.bold
+            ),
+          ),
         ),
         Text(
           plane.state.name.toUpperCase(),
-          style: GoogleFonts.inter(color: Colors.white54, fontSize: baseFontSize * 0.6, letterSpacing: 1),
+          style: GoogleFonts.inter(
+            color: Colors.white54, 
+            fontSize: isShortScreen ? baseFontSize * 0.55 : baseFontSize * 0.65, 
+            letterSpacing: 1
+          ),
         ),
       ],
     );
   }
 
   Widget _buildScoreAndLives(double baseFontSize, bool isIPad) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'SCORE: ${widget.game.score}',
-          style: GoogleFonts.orbitron(color: Colors.yellow, fontSize: baseFontSize, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(width: 10),
-        _topBarDivider(isIPad),
-        const SizedBox(width: 10),
-        Text(
-          'LIVES: ${widget.game.maxCollisions - widget.game.collisionsCount}',
-          style: GoogleFonts.orbitron(
-            color: (widget.game.maxCollisions - widget.game.collisionsCount) <= 1 ? Colors.red : Colors.greenAccent,
-            fontSize: baseFontSize,
-            fontWeight: FontWeight.bold,
+    final isShortScreen = MediaQuery.of(context).size.height < 700;
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'SCORE: ${widget.game.score}',
+            style: GoogleFonts.orbitron(
+              color: Colors.yellow, 
+              fontSize: isShortScreen ? baseFontSize * 0.85 : baseFontSize, 
+              fontWeight: FontWeight.bold
+            ),
           ),
-        ),
-      ],
+          SizedBox(width: isShortScreen ? 6 : 10),
+          _topBarDivider(isIPad),
+          SizedBox(width: isShortScreen ? 6 : 10),
+          Text(
+            'LIVES: ${widget.game.maxCollisions - widget.game.collisionsCount}',
+            style: GoogleFonts.orbitron(
+              color: (widget.game.maxCollisions - widget.game.collisionsCount) <= 1 ? Colors.red : Colors.greenAccent,
+              fontSize: isShortScreen ? baseFontSize * 0.85 : baseFontSize,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -325,7 +345,7 @@ class _HUDState extends State<HUD> {
         _buildCompactActionBtn(
           Icons.exit_to_app,
           Colors.orangeAccent,
-          () => widget.game.resetToMenu(),
+          () => widget.game.backToLevelSelector(),
           isIPad
         ),
       ],
@@ -350,25 +370,26 @@ class _HUDState extends State<HUD> {
     );
   }
 
-  Widget _topBarStatusItem(String label, String value, Color color, double baseFontSize, {VoidCallback? onPlus, VoidCallback? onMinus}) {
+  Widget _topBarStatusItem(String label, String value, Color color, double fontSize, {VoidCallback? onPlus, VoidCallback? onMinus}) {
+    final isShortScreen = MediaQuery.of(context).size.height < 700;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(label, style: GoogleFonts.inter(color: Colors.white38, fontSize: baseFontSize * 0.5)),
+        Text(label, style: GoogleFonts.inter(color: Colors.white54, fontSize: isShortScreen ? fontSize * 0.6 : fontSize * 0.7, fontWeight: FontWeight.bold)),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (onMinus != null) 
               IconButton(
-                icon: const Icon(Icons.remove, color: Colors.red, size: 14),
+                icon: Icon(Icons.remove, color: color, size: isShortScreen ? 14 : 16),
                 onPressed: onMinus,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
-            Text(value, style: GoogleFonts.orbitron(color: color, fontSize: baseFontSize * 0.8, fontWeight: FontWeight.bold)),
+            Text(value, style: GoogleFonts.orbitron(color: color, fontSize: fontSize, fontWeight: FontWeight.bold)),
             if (onPlus != null) 
               IconButton(
-                icon: const Icon(Icons.add, color: Colors.green, size: 14),
+                icon: Icon(Icons.add, color: color, size: isShortScreen ? 14 : 16),
                 onPressed: onPlus,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
