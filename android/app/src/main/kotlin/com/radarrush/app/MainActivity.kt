@@ -1,4 +1,4 @@
-package com.example.airplane_landing
+package com.radarrush.app
 
 import io.flutter.embedding.android.FlutterActivity
 

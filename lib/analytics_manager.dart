@@ -4,34 +4,55 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class AnalyticsManager {
-  static final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
-  static final FirebaseAnalyticsObserver observer = FirebaseAnalyticsObserver(analytics: _analytics);
+  static FirebaseAnalytics? _analytics;
+  static FirebaseAnalyticsObserver? observer;
+  static bool _isInitialized = false;
 
   static Future<void> init() async {
+    if (_isInitialized) return;
     try {
       await Firebase.initializeApp();
+      _analytics = FirebaseAnalytics.instance;
+      observer = FirebaseAnalyticsObserver(analytics: _analytics!);
+      _isInitialized = true;
       debugPrint('Firebase Analytics Initialized');
     } catch (e) {
       debugPrint('Firebase Analytics Initialization Failed: $e');
+      _isInitialized = false;
+    }
+  }
+
+  // Helper to log events safely
+  static Future<void> _logEvent(String name, {Map<String, Object>? parameters}) async {
+    if (!_isInitialized || _analytics == null) return;
+    try {
+      await _analytics!.logEvent(name: name, parameters: parameters);
+    } catch (e) {
+      debugPrint('Failed to log event $name: $e');
     }
   }
 
   // Log App Launch
   static Future<void> logAppLaunch() async {
-    await _analytics.logAppOpen();
-    await _analytics.logEvent(
-      name: 'app_launch_details',
-      parameters: {
-        'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
-        'timestamp': DateTime.now().toIso8601String(),
-      },
-    );
+    if (!_isInitialized || _analytics == null) return;
+    try {
+      await _analytics!.logAppOpen();
+      await _logEvent(
+        'app_launch_details',
+        parameters: {
+          'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
+    } catch (e) {
+      debugPrint('Failed to log app launch: $e');
+    }
   }
 
   // Log Screen Size
   static Future<void> logScreenDetails(Size size) async {
-    await _analytics.logEvent(
-      name: 'device_screen_size',
+    await _logEvent(
+      'device_screen_size',
       parameters: {
         'width': size.width.toInt(),
         'height': size.height.toInt(),
@@ -42,8 +63,8 @@ class AnalyticsManager {
 
   // Log Menu Navigation
   static Future<void> logMenuView(String menuName) async {
-    await _analytics.logEvent(
-      name: 'menu_view',
+    await _logEvent(
+      'menu_view',
       parameters: {
         'menu_name': menuName,
       },
@@ -52,14 +73,19 @@ class AnalyticsManager {
 
   // Log Game Started
   static Future<void> logGameStarted(String airport, String level) async {
-    await _analytics.logLevelStart(levelName: level);
-    await _analytics.logEvent(
-      name: 'game_started',
-      parameters: {
-        'airport_code': airport,
-        'difficulty_level': level,
-      },
-    );
+    if (!_isInitialized || _analytics == null) return;
+    try {
+      await _analytics!.logLevelStart(levelName: level);
+      await _logEvent(
+        'game_started',
+        parameters: {
+          'airport_code': airport,
+          'difficulty_level': level,
+        },
+      );
+    } catch (e) {
+      debugPrint('Failed to log game start: $e');
+    }
   }
 
   // Log Game Over / Milestone
@@ -70,23 +96,28 @@ class AnalyticsManager {
     required String airport,
     required double maxSpeedReached,
   }) async {
-    await _analytics.logEvent(
-      name: 'game_over',
-      parameters: {
-        'final_score': score,
-        'total_landings': landings,
-        'total_takeoffs': takeoffs,
-        'airport_code': airport,
-        'max_speed_reached': maxSpeedReached.toInt(),
-      },
-    );
-    await _analytics.logPostScore(score: score);
+    if (!_isInitialized || _analytics == null) return;
+    try {
+      await _logEvent(
+        'game_over',
+        parameters: {
+          'final_score': score,
+          'total_landings': landings,
+          'total_takeoffs': takeoffs,
+          'airport_code': airport,
+          'max_speed_reached': maxSpeedReached.toInt(),
+        },
+      );
+      await _analytics!.logPostScore(score: score);
+    } catch (e) {
+      debugPrint('Failed to log game over: $e');
+    }
   }
 
   // Log Audio Settings
   static Future<void> logAudioToggle(bool isMuted) async {
-    await _analytics.logEvent(
-      name: 'audio_settings_changed',
+    await _logEvent(
+      'audio_settings_changed',
       parameters: {
         'is_muted': isMuted ? 1 : 0,
       },
@@ -95,10 +126,10 @@ class AnalyticsManager {
 
   // Log Specific Flight Action
   static Future<void> logFlightAction(String action, String flightNumber) async {
-    await _analytics.logEvent(
-      name: 'flight_action',
+    await _logEvent(
+      'flight_action',
       parameters: {
-        'action_type': action, // e.g., 'landing', 'takeoff', 'taxi'
+        'action_type': action,
         'flight_id': flightNumber,
       },
     );
