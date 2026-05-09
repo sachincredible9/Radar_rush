@@ -114,16 +114,32 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     super.update(dt);
     elapsedTime += dt;
     if (state == GameState.playing) {
-      // Dynamic Difficulty: Increase speed by 5 units every 5000 points
+      // Dynamic Difficulty: Increase speed by 8 units every 5000 points
       planeBaseSpeed = 170.0 + (score ~/ 5000) * 8.0;
       
       spawnTimer += dt;
       if (spawnTimer > _currentSpawnInterval()) {
-        world.add(Airplane());
+        // Higher scores can spawn multiple planes at once
+        int spawnCount = 1;
+        if (score >= 30000) {
+          spawnCount = (Random().nextDouble() < 0.4) ? 3 : 2; // High intensity
+        } else if (score >= 20000) {
+          spawnCount = (Random().nextDouble() < 0.5) ? 2 : 1;
+        } else if (score >= 10000) {
+          spawnCount = (Random().nextDouble() < 0.3) ? 2 : 1;
+        }
+
+        for (int i = 0; i < spawnCount; i++) {
+          // Slight delay between multiple spawns to prevent overlapping sounds
+          Future.delayed(Duration(milliseconds: i * 800), () {
+            if (state == GameState.playing) world.add(Airplane());
+          });
+        }
+        
         spawnTimer = 0;
       }
 
-      // Track the highest speed reached during this session
+      // Track highest speed
       if (planeBaseSpeed > maxSpeedObserved) {
         maxSpeedObserved = planeBaseSpeed;
       }
@@ -131,10 +147,23 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
   }
 
   double _currentSpawnInterval() {
-    // Progressive Spawn Scaling: Starts at 14s, drops smoothly to 2s at 100k points
-    double baseInterval = 14.0;
-    double reduction = (score / 10000) * 1.2;
-    return max(2.0, baseInterval - reduction);
+    // Base starts at 14s
+    double interval = 14.0;
+
+    // Milestone-based drops
+    if (score >= 30000) {
+      interval = 4.0; // Very fast
+    } else if (score >= 20000) {
+      interval = 6.5;
+    } else if (score >= 10000) {
+      interval = 9.0;
+    } else if (score >= 5000) {
+      interval = 11.5;
+    }
+
+    // Additional smooth scaling for granular difficulty
+    double reduction = (score % 5000 / 5000) * 1.5;
+    return max(2.5, interval - reduction);
   }
 
   Runway getNextRunway() {
@@ -143,7 +172,7 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     return runway;
   }
 
-  final List<int> milestones = [1000, 3000, 5000, 7000, 11000, 15000, 20000, 30000, 40000, 50000, 75000, 100000];
+  final List<int> milestones = [1000, 3000, 5000, 7000, 10000, 15000, 20000, 25000, 30000, 40000, 50000, 75000, 100000];
   int _lastMilestoneIdx = -1;
 
   void addPoints(int points, {bool isLanding = false, bool isTakeoff = false}) {
@@ -156,6 +185,15 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
       if (score >= milestones[i] && _lastMilestoneIdx < i) {
         _lastMilestoneIdx = i;
         _triggerCelebration();
+
+        // Special Traffic Alerts
+        if (milestones[i] == 10000) {
+          AudioManager.announce('Warning: Traffic density increasing.');
+        } else if (milestones[i] == 20000) {
+          AudioManager.announce('Caution: Heavy airspace congestion reported.');
+        } else if (milestones[i] == 30000) {
+          AudioManager.announce('Emergency: Maximum traffic load reached. Maintain clearance.');
+        }
         break;
       }
     }
