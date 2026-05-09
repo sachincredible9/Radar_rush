@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
@@ -41,8 +42,12 @@ class Gate extends PositionComponent with HasGameRef<AirplaneLandingGame>, TapCa
                 ? Colors.red.withOpacity(0.4) 
                 : (isSelected ? Colors.green : Colors.green.withOpacity(0.2))));
     
+    final pulse = isDesignatedAndSelected 
+        ? (0.4 + 0.2 * sin(gameRef.elapsedTime * 8)).clamp(0.2, 0.6)
+        : 0.4;
+
     final paint = Paint()
-      ..color = gateColor.withOpacity(0.4)
+      ..color = gateColor.withOpacity(pulse)
       ..style = PaintingStyle.fill;
     
     canvas.drawRect(size.toRect(), paint);

@@ -25,12 +25,14 @@ class _HUDState extends State<HUD> {
       final size = MediaQuery.of(context).size;
       final isIPad = size.width > 800;
       final isSmallPhone = size.width < 400;
+      final isShortScreen = size.height < 700;
       
       setState(() {
         panelWidth = isIPad ? 580 : (isSmallPhone ? size.width * 0.9 : 400);
-        panelHeight = isIPad ? 260 : 180;
-        // Position panel at the bottom with safe margins
-        double bottomMargin = isIPad ? 650 : 380;
+        panelHeight = isIPad ? 260 : (isShortScreen ? 140 : 180);
+        
+        // Position panel at the bottom with safe margins, adjusting for height
+        double bottomMargin = isIPad ? 650 : (isShortScreen ? 280 : 380);
         panelOffset = Offset(
           (size.width - panelWidth) / 2, 
           (size.height - bottomMargin).clamp(100.0, size.height - 200.0)
@@ -41,10 +43,14 @@ class _HUDState extends State<HUD> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final size = MediaQuery.of(context).size;
+    final screenWidth = size.width;
+    final screenHeight = size.height;
     final isIPad = screenWidth > 800;
-    final baseFontSize = isIPad ? 22.0 : 12.0;
-    final headerFontSize = isIPad ? 28.0 : 16.0;
+    final isShortScreen = screenHeight < 700;
+    
+    final baseFontSize = isIPad ? 22.0 : (isShortScreen ? 10.0 : 12.0);
+    final headerFontSize = isIPad ? 28.0 : (isShortScreen ? 14.0 : 16.0);
 
     return StreamBuilder(
       stream: Stream.periodic(const Duration(milliseconds: 100)),
@@ -56,32 +62,30 @@ class _HUDState extends State<HUD> {
           children: [
             // Top Control Bar(s)
             Positioned(
-              top: isIPad ? 60 : 50, 
-              left: 20,
-              right: 20,
+              top: isIPad ? 60 : (isShortScreen ? 25 : 50), 
+              left: 12,
+              right: 12,
               child: isIPad 
                 ? _buildUnifiedTopBar(selectedPlane, isPaused, baseFontSize, headerFontSize, isIPad)
-                : Column(
-                    children: [
-                      _buildMobileStatsBar(selectedPlane, baseFontSize, headerFontSize),
-                      const SizedBox(height: 12),
-                      _buildMobileControlsBar(isPaused, isIPad),
-                    ],
-                  ),
+                : _buildMobileStatsBar(selectedPlane, baseFontSize, headerFontSize, isPaused, isShortScreen),
             ),
 
             Positioned(
-              bottom: 40,
-              left: 20,
+              bottom: isShortScreen ? 12 : 30,
+              left: 12,
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.black87,
+                  color: Colors.black.withOpacity(0.8),
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white24),
+                  border: Border.all(color: Colors.cyan.withOpacity(0.3)),
                 ),
                 child: IconButton(
-                  icon: Icon(Icons.info_outline, color: Colors.white, size: isIPad ? 40 : 28),
-                  onPressed: () => widget.game.overlays.add('Instructions'),
+                  icon: Icon(Icons.info_outline, color: Colors.white, size: isIPad ? 40 : (isShortScreen ? 20 : 28)),
+                  onPressed: () {
+                    widget.game.pauseEngine();
+                    AudioManager.stopVoice();
+                    widget.game.overlays.add('Instructions');
+                  },
                 ),
               ),
             ),
@@ -97,7 +101,7 @@ class _HUDState extends State<HUD> {
                         panelOffset += details.delta;
                       });
                     },
-                    child: _buildCommandPanel(selectedPlane, isIPad, headerFontSize, baseFontSize, panelWidth, panelHeight),
+                    child: _buildCommandPanel(selectedPlane, isIPad, headerFontSize, baseFontSize, panelWidth, panelHeight, isShortScreen),
                   ),
                   Positioned(
                     right: 0,
@@ -106,7 +110,7 @@ class _HUDState extends State<HUD> {
                       onPanUpdate: (details) {
                         setState(() {
                           panelWidth = (panelWidth + details.delta.dx).clamp(250.0, 800.0);
-                          panelHeight = (panelHeight + details.delta.dy).clamp(isIPad ? 180.0 : 160.0, 500.0);
+                          panelHeight = (panelHeight + details.delta.dy).clamp(isIPad ? 180.0 : (isShortScreen ? 120.0 : 160.0), 500.0);
                         });
                       },
                       child: Container(
@@ -171,39 +175,47 @@ class _HUDState extends State<HUD> {
     );
   }
 
-  Widget _buildMobileStatsBar(Airplane? selectedPlane, double baseFontSize, double headerFontSize) {
+  Widget _buildMobileStatsBar(Airplane? selectedPlane, double baseFontSize, double headerFontSize, bool isPaused, bool isShortScreen) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: isShortScreen ? 10 : 16, vertical: isShortScreen ? 4 : 8),
       decoration: _topBarDecoration(),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          if (selectedPlane != null) 
-            Row(
+          Expanded(
+            child: Row(
               children: [
-                _buildPlaneInfo(selectedPlane, headerFontSize, baseFontSize),
-                const SizedBox(width: 12),
-                _topBarDivider(false),
-                const SizedBox(width: 12),
-                _topBarStatusItem(
-                  'SPD', 
-                  '${selectedPlane.speed.toInt()}', 
-                  Colors.yellow, 
-                  baseFontSize,
-                  onPlus: () => selectedPlane.command('FAST'),
-                  onMinus: () => selectedPlane.command('SLOW'),
-                ),
-                const SizedBox(width: 8),
-                _topBarStatusItem('HDG', '${(selectedPlane.angle * 180 / 3.14).toInt().abs()}°', Colors.cyan, baseFontSize),
+                if (selectedPlane != null) ...[
+                  _buildPlaneInfo(selectedPlane, headerFontSize, baseFontSize),
+                  SizedBox(width: isShortScreen ? 6 : 12),
+                  _topBarDivider(false),
+                  SizedBox(width: isShortScreen ? 6 : 12),
+                  _topBarStatusItem(
+                    'SPD', 
+                    '${selectedPlane.speed.toInt()}', 
+                    Colors.yellow, 
+                    baseFontSize,
+                    onPlus: () => selectedPlane.command('FAST'),
+                    onMinus: () => selectedPlane.command('SLOW'),
+                  ),
+                  SizedBox(width: isShortScreen ? 4 : 8),
+                  _topBarStatusItem('HDG', '${(selectedPlane.angle * 180 / 3.14).toInt().abs()}°', Colors.cyan, baseFontSize),
+                ] else
+                  Text('RADAR ACTIVE', style: GoogleFonts.orbitron(color: Colors.cyan, fontSize: baseFontSize, fontWeight: FontWeight.bold)),
               ],
-            )
-          else
-            Text('RADAR ACTIVE', style: GoogleFonts.orbitron(color: Colors.cyan, fontSize: baseFontSize, fontWeight: FontWeight.bold)),
+            ),
+          ),
           
           Row(
             children: [
+              if (isShortScreen) ...[
+                _topBarDivider(false),
+                const SizedBox(width: 8),
+                _buildActionButtonsGroup(isPaused, false),
+                const SizedBox(width: 8),
+              ],
               _topBarDivider(false),
-              const SizedBox(width: 12),
+              SizedBox(width: isShortScreen ? 8 : 12),
               _buildScoreAndLives(baseFontSize, false),
             ],
           ),
@@ -212,9 +224,9 @@ class _HUDState extends State<HUD> {
     );
   }
 
-  Widget _buildMobileControlsBar(bool isPaused, bool isIPad) {
+  Widget _buildMobileControlsBar(bool isPaused, bool isIPad, bool isShortScreen) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: isShortScreen ? 12 : 20, vertical: 4),
       decoration: _topBarDecoration(opacity: 0.7),
       child: _buildActionButtonsGroup(isPaused, false),
     );
@@ -367,11 +379,11 @@ class _HUDState extends State<HUD> {
     );
   }
 
-  Widget _buildCommandPanel(Airplane? plane, bool isIPad, double headerFontSize, double baseFontSize, double width, double height) {
+  Widget _buildCommandPanel(Airplane? plane, bool isIPad, double headerFontSize, double baseFontSize, double width, double height, bool isShortScreen) {
     return Container(
       width: width, 
       height: height,
-      padding: EdgeInsets.all(isIPad ? 20 : 12),
+      padding: EdgeInsets.all(isIPad ? 20 : (isShortScreen ? 8 : 12)),
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.9),
         borderRadius: BorderRadius.circular(20),
@@ -494,15 +506,19 @@ class _HUDState extends State<HUD> {
   }
 
   Widget _buildActionBtn(String label, IconData icon, Color color, VoidCallback onPressed, bool isIPad) {
+    final isShortScreen = MediaQuery.of(context).size.height < 700;
     return ElevatedButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon, size: isIPad ? 24 : 18),
-      label: Text(label, style: TextStyle(fontSize: isIPad ? 18 : 12)),
+      icon: Icon(icon, size: isIPad ? 24 : (isShortScreen ? 14 : 18)),
+      label: Text(label, style: TextStyle(fontSize: isIPad ? 18 : (isShortScreen ? 10 : 12))),
       style: ElevatedButton.styleFrom(
         backgroundColor: color.withOpacity(0.2),
         foregroundColor: color,
         side: BorderSide(color: color.withOpacity(0.5)),
-        padding: EdgeInsets.symmetric(horizontal: isIPad ? 20 : 12, vertical: isIPad ? 15 : 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: isIPad ? 20 : (isShortScreen ? 8 : 12), 
+          vertical: isIPad ? 15 : (isShortScreen ? 6 : 10)
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );

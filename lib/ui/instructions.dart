@@ -26,6 +26,7 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
     if (!AudioManager.isMuted) {
       AudioManager.playCrowdAmbiance();
     }
+    widget.game.resumeEngine(); // Resume gameplay
     widget.game.overlays.remove('Instructions');
   }
 

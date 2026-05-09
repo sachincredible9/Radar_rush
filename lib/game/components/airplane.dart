@@ -41,7 +41,9 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
     sprite = await gameRef.loadSprite('airplane_top.png');
     paint = Paint()..blendMode = BlendMode.screen;
       
-    add(CircleHitbox(radius: 20));
+    // Increase hitbox for easier selection on small screens
+    double hitBoxRadius = gameRef.size.x < 500 ? 35 : 25;
+    add(CircleHitbox(radius: hitBoxRadius));
     scale = Vector2.all(1.4);
     
     _assignTargetGate();
@@ -91,14 +93,38 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
   @override
   void render(Canvas canvas) {
     if (isSelected) {
-      final pulse = (1.0 + 0.1 * sin(gameRef.elapsedTime * 10)).clamp(1.0, 1.2);
+      final pulse = (1.0 + 0.15 * sin(gameRef.elapsedTime * 12)).clamp(1.0, 1.3);
+      final opacityPulse = (0.5 + 0.3 * sin(gameRef.elapsedTime * 8)).clamp(0.4, 0.8);
+      
+      // Outer Glow
       canvas.drawCircle(
         (size / 2).toOffset(),
-        (size.x / 2 + 10) * pulse,
+        (size.x / 2 + 15) * pulse,
         Paint()
-          ..color = Colors.cyanAccent.withOpacity(0.6)
+          ..color = Colors.cyanAccent.withOpacity(0.3 * opacityPulse)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 3,
+          ..strokeWidth = 6
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+      );
+
+      // Main Ring
+      canvas.drawCircle(
+        (size / 2).toOffset(),
+        (size.x / 2 + 12) * pulse,
+        Paint()
+          ..color = Colors.cyanAccent.withOpacity(opacityPulse)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4,
+      );
+
+      // Inner Sharp Ring
+      canvas.drawCircle(
+        (size / 2).toOffset(),
+        (size.x / 2 + 10),
+        Paint()
+          ..color = Colors.white.withOpacity(0.9)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.5,
       );
     }
     if (state == PlaneState.crashing) {
@@ -322,7 +348,8 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
     if (state == PlaneState.readyToPark && targetGate != null) {
       double dist = position.distanceTo(targetGate!);
       // Strict precision: must be very close to the gate center (within 30 pixels)
-      if (dist < 30) {
+      // Expanded precision: more forgiving on small screens (60 pixels)
+      if (dist < 60) {
         state = PlaneState.atGate;
         position = targetGate!.clone(); // Pixel-perfect alignment
         angle = 0;
