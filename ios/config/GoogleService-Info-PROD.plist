@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>379566838394-upubrj2mrgbsm5bbqp4nd0u36cg637e6.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.379566838394-upubrj2mrgbsm5bbqp4nd0u36cg637e6</string>
+	<key>API_KEY</key>
+	<string>AIzaSyD-M28gWFbODIJ6vhRiqdK8A9KLDjNi77s</string>
+	<key>GCM_SENDER_ID</key>
+	<string>379566838394</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.radarrush.app</string>
+	<key>PROJECT_ID</key>
+	<string>radar-rush</string>
+	<key>STORAGE_BUCKET</key>
+	<string>radar-rush.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:379566838394:ios:142ed6b67f99d51957a1c3</string>
+</dict>
+</plist>

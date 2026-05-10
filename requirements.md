@@ -20,7 +20,10 @@
 |---------|---------|
 | `flame` | Core game loop and component management |
 | `flame_audio` | Background music and spatial sound effects |
-| `google_fonts` | Modern typography (Orbitron, Inter) |
+| `firebase_auth` | Secure user authentication and session management |
+| `google_sign_in` | Official Google OAuth 2.0 integration |
+| `sign_in_with_apple` | Native Apple Authorization Services integration |
+| `google_fonts` | Modern typography (Orbitron, Inter, Roboto) |
 | `flutter_animate` | Smooth UI transitions and effects |
 | `flutter_native_splash` | Cinematic cinematic runway launch screen |
 

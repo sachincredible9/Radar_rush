@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -187,38 +188,75 @@ class _HUDState extends State<HUD> {
   }
 
   Widget _buildMobileStatsBar(Airplane? selectedPlane, double baseFontSize, double headerFontSize, bool isPaused, bool isShortScreen) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: isShortScreen ? 12 : 16, vertical: isShortScreen ? 6 : 10),
-      decoration: _topBarDecoration(),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                if (selectedPlane != null) ...[
-                  _buildPlaneInfo(selectedPlane, headerFontSize, baseFontSize),
-                  SizedBox(width: isShortScreen ? 4 : 10),
-                  _topBarDivider(false),
-                  SizedBox(width: isShortScreen ? 4 : 10),
-                  _topBarStatusItem(
-                    'SPD', 
-                    '${selectedPlane.speed.toInt()}', 
-                    Colors.yellow, 
-                    isShortScreen ? baseFontSize * 0.9 : baseFontSize,
-                    onPlus: () => selectedPlane.command('FAST'),
-                    onMinus: () => selectedPlane.command('SLOW'),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double availableWidth = constraints.maxWidth;
+        final bool isVeryNarrow = availableWidth < 360;
+        
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: isShortScreen ? 8 : 12, vertical: isShortScreen ? 6 : 10),
+          decoration: _topBarDecoration(),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Left Section: Plane Info & Telemetry (Unified Scaling)
+              Expanded(
+                flex: 3,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (selectedPlane != null) ...[
+                        _buildPlaneInfo(selectedPlane, headerFontSize, baseFontSize),
+                        const SizedBox(width: 8),
+                        _topBarDivider(false),
+                        const SizedBox(width: 8),
+                        
+                        // Telemetry Group
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _topBarStatusItem(
+                              'SPD', 
+                              '${selectedPlane.speed.toInt()}', 
+                              Colors.yellow, 
+                              isShortScreen ? baseFontSize * 0.9 : baseFontSize,
+                              onPlus: () => selectedPlane.command('FAST'),
+                              onMinus: () => selectedPlane.command('SLOW'),
+                            ),
+                            const SizedBox(width: 12),
+                            _topBarStatusItem(
+                              'HDG', 
+                              '${(selectedPlane.angle * 180 / 3.14).toInt().abs()}°', 
+                              Colors.cyan, 
+                              isShortScreen ? baseFontSize * 0.9 : baseFontSize
+                            ),
+                          ],
+                        ),
+                      ] else
+                        Text('RADAR ACTIVE', style: GoogleFonts.orbitron(color: Colors.cyan, fontSize: baseFontSize, fontWeight: FontWeight.bold)),
+                    ],
                   ),
-                  SizedBox(width: isShortScreen ? 4 : 10),
-                  _topBarStatusItem('HDG', '${(selectedPlane.angle * 180 / 3.14).toInt().abs()}°', Colors.cyan, isShortScreen ? baseFontSize * 0.9 : baseFontSize),
-                ] else
-                  Text('RADAR ACTIVE', style: GoogleFonts.orbitron(color: Colors.cyan, fontSize: baseFontSize, fontWeight: FontWeight.bold)),
-              ],
-            ),
+                ),
+              ),
+              
+              const SizedBox(width: 8), // Safety spacer
+              
+              // Right Section: Score & Lives
+              Expanded(
+                flex: 2,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: _buildScoreAndLives(baseFontSize, false),
+                ),
+              ),
+            ],
           ),
-          _buildScoreAndLives(baseFontSize, false),
-        ],
-      ),
+        );
+      }
     );
   }
 

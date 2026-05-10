@@ -4,6 +4,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../game/game.dart';
 
 import '../game/audio_manager.dart';
+import 'package:radar_rush/auth_manager.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class MainMenu extends StatefulWidget {
   final AirplaneLandingGame game;
@@ -14,10 +16,22 @@ class MainMenu extends StatefulWidget {
 }
 
 class _MainMenuState extends State<MainMenu> {
+  String _appVersion = '';
+
   @override
   void initState() {
     super.initState();
+    _loadVersion();
     AudioManager.playCrowdAmbiance();
+  }
+
+  Future<void> _loadVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _appVersion = 'v${packageInfo.version}+${packageInfo.buildNumber}';
+      });
+    }
   }
 
   @override
@@ -92,6 +106,14 @@ class _MainMenuState extends State<MainMenu> {
                   style: GoogleFonts.inter(color: Colors.cyan.withOpacity(0.7), fontSize: 12, letterSpacing: 2),
                 ),
               ).animate().fadeIn(delay: 1.5.seconds),
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () => AuthManager.signOut(),
+                child: Text(
+                  'SIGN OUT',
+                  style: GoogleFonts.inter(color: Colors.redAccent.withOpacity(0.5), fontSize: 10, letterSpacing: 1),
+                ),
+              ).animate().fadeIn(delay: 2.seconds),
             ],
           ),
         ),
@@ -121,6 +143,16 @@ class _MainMenuState extends State<MainMenu> {
             ),
           ),
         ).animate().fadeIn(delay: 500.ms),
+        
+        // Version Tag at Bottom Left
+        Positioned(
+          bottom: 10,
+          left: 10,
+          child: Text(
+            _appVersion,
+            style: GoogleFonts.inter(color: Colors.white24, fontSize: 10, letterSpacing: 1),
+          ),
+        ),
       ],
     );
   }

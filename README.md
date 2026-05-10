@@ -22,7 +22,13 @@ A premium, high-stakes Air Traffic Control simulation built with Flutter and Fla
 - **Smart Ground Handling**: Mandatory 4-second servicing interval at terminal gates before takeoff clearance.
 - **Multi-Phase ATC**: Manage En-Route, Holding, Landing, Taxiing, Ready-to-Park, and Departure phases.
 
-### 4. Immersion & Feedback
+### 4. Advanced Authentication & Security
+- **Triple-Auth Suite**: Professional-grade login options including **Google Sign-In**, **Apple Sign-In**, and traditional **Email/Password**.
+- **Platform-Native Experience**: Automatically prioritizes Apple on iOS and Google on Android for a seamless user journey.
+- **Environment-Aware Infrastructure**: Intelligent build system that automatically swaps between **Development** and **Production** Firebase configurations.
+- **Secure Persistence**: Integrated session management—log in once, stay authenticated across app launches.
+
+### 5. Immersion & Feedback
 - **ATC Voice Announcements**: Real-time synthesized voice feedback for all major events (Touchdown, Parked, Milestones).
 - **Radar Entry Pings**: Instant audio-visual alerts (Radar Ping + Flight Number) when new aircraft enter the sector.
 - **Immersive Takeoff Audio**: Realistic engine roar that dynamically fades and drifts away as the aircraft departs the radar range.
@@ -62,8 +68,9 @@ The **Flight Manual & Info** section includes a functional training deck where y
 
 ## 🛠️ Recent Improvements & Version Updates
 
-### Mobile Optimization (iPhone)
-- **Responsive HUD**: Implemented a vertically stacked "pill" layout for iPhone to clear the Dynamic Island and notch areas.
+### Mobile Optimization (iPhone 17 / iOS 17+)
+- **Adaptive HUD Engine**: Implemented a responsive layout that intelligently scales telemetry data, aircraft ID, and scores to prevent overflows on any mobile screen width.
+- **Pill-Layout Integration**: Vertically stacked "pill" HUD layout optimized to clear the Dynamic Island and notch areas.
 - **Resizing Fixes**: Resolved overflow errors during control panel resizing by adding `FittedBox` scaling and increasing minimum height constraints.
 - **Manual Alignment**: Redesigned the "Flight Manual" overlay with `SafeArea` and optimized padding for perfect alignment on modern iPhone screens.
 
