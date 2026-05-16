@@ -26,6 +26,7 @@
 | `google_fonts` | Modern typography (Orbitron, Inter, Roboto) |
 | `flutter_animate` | Smooth UI transitions and effects |
 | `flutter_native_splash` | Cinematic cinematic runway launch screen |
+| `shared_preferences` | Local persistence for high scores and career progression |
 
 ## Asset Requirements
 - **Sprites**: PNG format with transparency.
@@ -37,5 +38,10 @@
   - Landing: +500 pts
   - Parking at Gate: +500 pts
   - Successful Takeoff: +1500 pts
+- **Progression & Unlocking**:
+  - **Career Landings**: Cumulative count of successful landings across all airports.
+  - **Airport Unlocking**: Gated access to international hubs based on Career Landing milestones.
 - **Airplane States**:
-  - `READY TO TAKEOFF`: Automatically set when the aircraft completes taxiing and stops at the terminal gate.
+  - `READY TO PARK`: Aircraft reaches the apron; user must manually drag to the highlighted gate.
+  - `AT GATE`: Aircraft is being serviced (4s mandatory interval).
+  - `READY TO TAKEOFF`: Automatically set when servicing is complete.

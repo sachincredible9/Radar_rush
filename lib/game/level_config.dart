@@ -22,6 +22,7 @@ class LevelConfig {
   final List<Runway> runways;
   final Vector2 taxiToGate;
   final List<GateConfig> gates;
+  final int landingsToUnlock;
 
   LevelConfig({
     required this.name,
@@ -31,6 +32,7 @@ class LevelConfig {
     required this.runways,
     required this.taxiToGate,
     required this.gates,
+    this.landingsToUnlock = 0,
   });
 
   static List<LevelConfig> allLevels = [
@@ -51,6 +53,7 @@ class LevelConfig {
         GateConfig(position: Vector2(600, 150), label: 'G4'),
         GateConfig(position: Vector2(700, 150), label: 'G5'),
       ],
+      landingsToUnlock: 0,
     ),
     LevelConfig(
       name: 'JFK International',
@@ -69,6 +72,7 @@ class LevelConfig {
         GateConfig(position: Vector2(400, 400), label: 'G4'),
         GateConfig(position: Vector2(500, 400), label: 'G5'),
       ],
+      landingsToUnlock: 10,
     ),
     LevelConfig(
       name: 'Indira Gandhi Intl',
@@ -81,6 +85,7 @@ class LevelConfig {
       ],
       taxiToGate: Vector2(500, 400),
       gates: [GateConfig(position: Vector2(400, 200), label: "G1"), GateConfig(position: Vector2(500, 200), label: "G2"), GateConfig(position: Vector2(600, 200), label: "G3")],
+      landingsToUnlock: 25,
     ),
     LevelConfig(
       name: 'Dubai International',
@@ -98,6 +103,7 @@ class LevelConfig {
         GateConfig(position: Vector2(500, 150), label: 'G3'),
         GateConfig(position: Vector2(600, 150), label: 'G4'),
       ],
+      landingsToUnlock: 50,
     ),
     LevelConfig(
       name: 'Changi Airport',
@@ -110,6 +116,7 @@ class LevelConfig {
       ],
       taxiToGate: Vector2(500, 400),
       gates: [GateConfig(position: Vector2(300, 500), label: "G1"), GateConfig(position: Vector2(350, 500), label: "G2"), GateConfig(position: Vector2(400, 500), label: "G3"), GateConfig(position: Vector2(450, 500), label: "G4"), GateConfig(position: Vector2(500, 500), label: "G5"), GateConfig(position: Vector2(550, 500), label: "G6"), GateConfig(position: Vector2(300, 550), label: "G7"), GateConfig(position: Vector2(350, 550), label: "G8"), GateConfig(position: Vector2(400, 550), label: "G9"), GateConfig(position: Vector2(450, 550), label: "G10"), GateConfig(position: Vector2(500, 550), label: "G11"), GateConfig(position: Vector2(550, 550), label: "G12")],
+      landingsToUnlock: 75,
     ),
     LevelConfig(
       name: 'Haneda Airport',
@@ -122,6 +129,7 @@ class LevelConfig {
       ],
       taxiToGate: Vector2(400, 500),
       gates: [GateConfig(position: Vector2(600, 300), label: "G1"), GateConfig(position: Vector2(600, 350), label: "G2"), GateConfig(position: Vector2(600, 400), label: "G3"), GateConfig(position: Vector2(600, 450), label: "G4"), GateConfig(position: Vector2(600, 500), label: "G5"), GateConfig(position: Vector2(600, 550), label: "G6"), GateConfig(position: Vector2(650, 300), label: "G7"), GateConfig(position: Vector2(650, 350), label: "G8"), GateConfig(position: Vector2(650, 400), label: "G9"), GateConfig(position: Vector2(650, 450), label: "G10"), GateConfig(position: Vector2(650, 500), label: "G11"), GateConfig(position: Vector2(650, 550), label: "G12")],
+      landingsToUnlock: 100,
     ),
     LevelConfig(
       name: 'Charles de Gaulle',
@@ -134,6 +142,7 @@ class LevelConfig {
       ],
       taxiToGate: Vector2(500, 500),
       gates: [GateConfig(position: Vector2(400, 600), label: "G1"), GateConfig(position: Vector2(450, 600), label: "G2"), GateConfig(position: Vector2(500, 600), label: "G3"), GateConfig(position: Vector2(550, 600), label: "G4"), GateConfig(position: Vector2(600, 600), label: "G5"), GateConfig(position: Vector2(650, 600), label: "G6"), GateConfig(position: Vector2(400, 650), label: "G7"), GateConfig(position: Vector2(450, 650), label: "G8"), GateConfig(position: Vector2(500, 650), label: "G9"), GateConfig(position: Vector2(550, 650), label: "G10"), GateConfig(position: Vector2(600, 650), label: "G11"), GateConfig(position: Vector2(650, 650), label: "G12")],
+      landingsToUnlock: 150,
     ),
     LevelConfig(
       name: 'Sydney Airport',
@@ -146,6 +155,7 @@ class LevelConfig {
       ],
       taxiToGate: Vector2(300, 500),
       gates: [GateConfig(position: Vector2(100, 300), label: "G1"), GateConfig(position: Vector2(100, 350), label: "G2"), GateConfig(position: Vector2(100, 400), label: "G3"), GateConfig(position: Vector2(100, 450), label: "G4"), GateConfig(position: Vector2(100, 500), label: "G5"), GateConfig(position: Vector2(100, 550), label: "G6"), GateConfig(position: Vector2(150, 300), label: "G7"), GateConfig(position: Vector2(150, 350), label: "G8"), GateConfig(position: Vector2(150, 400), label: "G9"), GateConfig(position: Vector2(150, 450), label: "G10"), GateConfig(position: Vector2(150, 500), label: "G11"), GateConfig(position: Vector2(150, 550), label: "G12")],
+      landingsToUnlock: 200,
     ),
     LevelConfig(
       name: 'Frankfurt Airport',
@@ -158,6 +168,7 @@ class LevelConfig {
       ],
       taxiToGate: Vector2(500, 600),
       gates: [GateConfig(position: Vector2(300, 800), label: "G1"), GateConfig(position: Vector2(350, 800), label: "G2"), GateConfig(position: Vector2(400, 800), label: "G3"), GateConfig(position: Vector2(450, 800), label: "G4"), GateConfig(position: Vector2(500, 800), label: "G5"), GateConfig(position: Vector2(550, 800), label: "G6"), GateConfig(position: Vector2(300, 850), label: "G7"), GateConfig(position: Vector2(350, 850), label: "G8"), GateConfig(position: Vector2(400, 850), label: "G9"), GateConfig(position: Vector2(450, 850), label: "G10"), GateConfig(position: Vector2(500, 850), label: "G11"), GateConfig(position: Vector2(550, 850), label: "G12")],
+      landingsToUnlock: 300,
     ),
     LevelConfig(
       name: 'Suvarnabhumi',
@@ -170,6 +181,7 @@ class LevelConfig {
       ],
       taxiToGate: Vector2(500, 500),
       gates: [GateConfig(position: Vector2(700, 200), label: "G1"), GateConfig(position: Vector2(750, 200), label: "G2"), GateConfig(position: Vector2(800, 200), label: "G3"), GateConfig(position: Vector2(850, 200), label: "G4"), GateConfig(position: Vector2(700, 250), label: "G5"), GateConfig(position: Vector2(750, 250), label: "G6"), GateConfig(position: Vector2(800, 250), label: "G7"), GateConfig(position: Vector2(850, 250), label: "G8"), GateConfig(position: Vector2(700, 300), label: "G9"), GateConfig(position: Vector2(750, 300), label: "G10"), GateConfig(position: Vector2(800, 300), label: "G11"), GateConfig(position: Vector2(850, 300), label: "G12")],
+      landingsToUnlock: 500,
     ),
   ];
 }

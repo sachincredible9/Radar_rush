@@ -2,10 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../game/game.dart';
+import '../game/level_config.dart';
+import '../persistence_manager.dart';
 
-class GameOverOverlay extends StatelessWidget {
+class GameOverOverlay extends StatefulWidget {
   final AirplaneLandingGame game;
   const GameOverOverlay({super.key, required this.game});
+
+  @override
+  State<GameOverOverlay> createState() => _GameOverOverlayState();
+}
+
+class _GameOverOverlayState extends State<GameOverOverlay> {
+  int? bestScore;
+  bool levelUnlocked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkProgress();
+  }
+
+  Future<void> _checkProgress() async {
+    final scores = await PersistenceManager.getHighScores(widget.game.currentLevel.iataCode);
+    if (scores.isNotEmpty) {
+      bestScore = scores.first;
+    }
+    
+    final totalLandings = await PersistenceManager.getTotalLandings();
+    // Check if any NEW level was unlocked in this session
+    // (This is a bit simplified, but checks if total landings just crossed a threshold)
+    for (var level in LevelConfig.allLevels) {
+      if (totalLandings >= level.landingsToUnlock && 
+          totalLandings - widget.game.landings < level.landingsToUnlock) {
+        levelUnlocked = true;
+        break;
+      }
+    }
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,10 +80,36 @@ class GameOverOverlay extends StatelessWidget {
               ),
               const Divider(color: Colors.white24, height: 40, thickness: 2),
               
-              _buildStatRow('TOTAL SCORE', '${game.score}', Colors.yellow, isIPad),
-              _buildStatRow('SUCCESSFUL LANDINGS', '${game.landings}', Colors.orangeAccent, isIPad),
-              _buildStatRow('SUCCESSFUL TAKEOFFS', '${game.takeoffs}', Colors.greenAccent, isIPad),
-              _buildStatRow('INCIDENTS', '${game.collisionsCount}', Colors.red, isIPad),
+              if (levelUnlocked)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.cyanAccent.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.cyanAccent),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.stars, color: Colors.cyanAccent),
+                      const SizedBox(width: 10),
+                      Text(
+                        'NEW AIRPORT UNLOCKED!',
+                        style: GoogleFonts.orbitron(
+                          color: Colors.cyanAccent,
+                          fontSize: isIPad ? 16 : 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().scale(delay: 500.ms).shimmer(),
+
+              _buildStatRow('TOTAL SCORE', '${widget.game.score}', Colors.yellow, isIPad, bestValue: bestScore),
+              _buildStatRow('SUCCESSFUL LANDINGS', '${widget.game.landings}', Colors.orangeAccent, isIPad),
+              _buildStatRow('SUCCESSFUL TAKEOFFS', '${widget.game.takeoffs}', Colors.greenAccent, isIPad),
+              _buildStatRow('INCIDENTS', '${widget.game.collisionsCount}', Colors.red, isIPad),
 
               const SizedBox(height: 40),
               
@@ -56,7 +117,7 @@ class GameOverOverlay extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
-                    onPressed: () => game.startGame(),
+                    onPressed: () => widget.game.startGame(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.greenAccent.withOpacity(0.2),
                       side: const BorderSide(color: Colors.greenAccent),
@@ -65,7 +126,7 @@ class GameOverOverlay extends StatelessWidget {
                     child: Text('RETRY', style: GoogleFonts.orbitron(color: Colors.white)),
                   ),
                   ElevatedButton(
-                    onPressed: () => game.resetToMenu(),
+                    onPressed: () => widget.game.resetToMenu(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white10,
                       side: const BorderSide(color: Colors.white24),
@@ -82,14 +143,28 @@ class GameOverOverlay extends StatelessWidget {
     );
   }
 
-  Widget _buildStatRow(String label, String value, Color color, bool isIPad) {
+  Widget _buildStatRow(String label, String value, Color color, bool isIPad, {int? bestValue}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Expanded(child: Text(label, style: GoogleFonts.inter(color: Colors.white70, fontSize: isIPad ? 16 : 12, fontWeight: FontWeight.bold))),
-          Text(value, style: GoogleFonts.orbitron(color: color, fontSize: isIPad ? 24 : 18, fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Text(label, style: GoogleFonts.inter(color: Colors.white70, fontSize: isIPad ? 16 : 12, fontWeight: FontWeight.bold))),
+              Text(value, style: GoogleFonts.orbitron(color: color, fontSize: isIPad ? 24 : 18, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          if (bestValue != null && label == 'TOTAL SCORE')
+            Text(
+              'BEST: $bestValue',
+              style: GoogleFonts.orbitron(
+                color: Colors.yellow.withOpacity(0.5),
+                fontSize: isIPad ? 12 : 9,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
         ],
       ),
     );

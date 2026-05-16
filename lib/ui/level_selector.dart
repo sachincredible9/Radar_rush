@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../game/game.dart';
 import '../game/level_config.dart';
-
 import '../game/audio_manager.dart';
+import '../persistence_manager.dart';
 
 class LevelSelector extends StatefulWidget {
   final AirplaneLandingGame game;
@@ -15,15 +15,24 @@ class LevelSelector extends StatefulWidget {
 }
 
 class _LevelSelectorState extends State<LevelSelector> {
+  int totalLandings = 0;
+  Map<String, int> bestScores = {};
+
   @override
   void initState() {
     super.initState();
+    _loadProgress();
   }
 
-  @override
-  void dispose() {
-    // We don't stop it here anymore so the tap sound can finish playing during transition
-    super.dispose();
+  Future<void> _loadProgress() async {
+    totalLandings = await PersistenceManager.getTotalLandings();
+    for (var level in LevelConfig.allLevels) {
+      final scores = await PersistenceManager.getHighScores(level.iataCode);
+      if (scores.isNotEmpty) {
+        bestScores[level.iataCode] = scores.first;
+      }
+    }
+    if (mounted) setState(() {});
   }
 
   @override
@@ -38,17 +47,31 @@ class _LevelSelectorState extends State<LevelSelector> {
           SizedBox(height: isIPad ? 80 : 40),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                'SELECT AIRPORT',
-                style: GoogleFonts.orbitron(
-                  color: Colors.white,
-                  fontSize: isIPad ? 48 : 32,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: isIPad ? 8 : 4,
+            child: Column(
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'SELECT AIRPORT',
+                    style: GoogleFonts.orbitron(
+                      color: Colors.white,
+                      fontSize: isIPad ? 48 : 32,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: isIPad ? 8 : 4,
+                    ),
+                  ).animate().fadeIn().slideY(begin: -0.5),
                 ),
-              ).animate().fadeIn().slideY(begin: -0.5),
+                const SizedBox(height: 10),
+                Text(
+                  'TOTAL LANDINGS: $totalLandings',
+                  style: GoogleFonts.inter(
+                    color: Colors.cyanAccent,
+                    fontSize: isIPad ? 18 : 14,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -61,12 +84,13 @@ class _LevelSelectorState extends State<LevelSelector> {
                     crossAxisCount: isIPad ? 3 : (constraints.maxWidth < 600 ? 1 : 2),
                     crossAxisSpacing: 30,
                     mainAxisSpacing: 30,
-                    childAspectRatio: isIPad ? 1.6 : 2.0,
+                    childAspectRatio: isIPad ? 1.1 : 1.8,
                   ),
                   itemCount: LevelConfig.allLevels.length,
                   itemBuilder: (context, index) {
                     final level = LevelConfig.allLevels[index];
-                    return _buildLevelCard(context, level, isIPad);
+                    final isUnlocked = totalLandings >= level.landingsToUnlock;
+                    return _buildLevelCard(context, level, isIPad, isUnlocked);
                   },
                 );
               },
@@ -74,8 +98,7 @@ class _LevelSelectorState extends State<LevelSelector> {
           ),
           TextButton(
             onPressed: () {
-              widget.game.overlays.remove('LevelSelector');
-              widget.game.overlays.add('MainMenu');
+              widget.game.resetToMenu();
               AudioManager.stopSelectionMusic();
             },
             child: Text(
@@ -93,25 +116,43 @@ class _LevelSelectorState extends State<LevelSelector> {
     );
   }
 
-  Widget _buildLevelCard(BuildContext context, LevelConfig level, bool isIPad) {
+  Widget _buildLevelCard(BuildContext context, LevelConfig level, bool isIPad, bool isUnlocked) {
+    final bestScore = bestScores[level.iataCode];
+
     return GestureDetector(
-      onTap: () {
+      onTap: isUnlocked ? () {
         AudioManager.stopCrowdAmbiance();
-        AudioManager.playSelectionMusic(); // Play once on tap
+        AudioManager.playSelectionMusic();
         widget.game.loadLevel(level);
         widget.game.startGame();
+      } : () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.redAccent,
+            content: Text(
+              'LOCK: Reach ${level.landingsToUnlock} total landings to unlock ${level.name}',
+              style: GoogleFonts.orbitron(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+          ),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.cyan.withOpacity(0.5), width: 2),
+          border: Border.all(
+            color: isUnlocked ? Colors.cyan.withOpacity(0.5) : Colors.white10, 
+            width: 2
+          ),
           image: DecorationImage(
             image: AssetImage('assets/images/${level.backgroundImage}'),
             fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.7), BlendMode.darken),
+            colorFilter: ColorFilter.mode(
+              isUnlocked ? Colors.black.withOpacity(0.7) : Colors.black.withOpacity(0.9), 
+              BlendMode.darken
+            ),
           ),
           boxShadow: [
-            BoxShadow(color: Colors.cyan.withOpacity(0.1), blurRadius: 20),
+            if (isUnlocked) BoxShadow(color: Colors.cyan.withOpacity(0.1), blurRadius: 20),
           ],
         ),
         child: Container(
@@ -120,35 +161,87 @@ class _LevelSelectorState extends State<LevelSelector> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Colors.black.withOpacity(0.8)],
+              colors: [
+                Colors.transparent, 
+                isUnlocked ? Colors.black.withOpacity(0.8) : Colors.black.withOpacity(0.9)
+              ],
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  level.name.toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.orbitron(
-                    color: Colors.white, 
-                    fontSize: isIPad ? 22 : 16, 
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1
+                padding: const EdgeInsets.all(8),
+                child: Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (!isUnlocked) ...[
+                          Icon(Icons.lock_outline, color: Colors.white24, size: isIPad ? 40 : 32),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${level.landingsToUnlock} LANDINGS',
+                            style: GoogleFonts.orbitron(
+                              color: Colors.white24,
+                              fontSize: isIPad ? 12 : 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 4),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Text(
+                            level.name.toUpperCase(),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            style: GoogleFonts.orbitron(
+                              color: isUnlocked ? Colors.white : Colors.white24, 
+                              fontSize: isIPad ? 20 : 16, 
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1
+                            ),
+                          ),
+                        ),
+                        if (isUnlocked) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            '${level.country.toUpperCase()} (${level.iataCode})',
+                            style: GoogleFonts.inter(
+                              color: Colors.cyanAccent.withOpacity(0.7), 
+                              fontSize: isIPad ? 12 : 11, 
+                              fontWeight: FontWeight.bold, 
+                              letterSpacing: 1.5
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                '${level.country.toUpperCase()} (${level.iataCode})',
-                style: GoogleFonts.inter(
-                  color: Colors.cyanAccent, 
-                  fontSize: isIPad ? 14 : 11, 
-                  fontWeight: FontWeight.bold, 
-                  letterSpacing: 2
+              if (isUnlocked && bestScore != null)
+                Positioned(
+                  top: 12,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.yellow.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.yellow.withOpacity(0.5)),
+                    ),
+                    child: Text(
+                      'BEST: $bestScore',
+                      style: GoogleFonts.orbitron(
+                        color: Colors.yellow,
+                        fontSize: isIPad ? 12 : 9,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
         ),

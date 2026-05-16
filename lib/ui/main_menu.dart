@@ -41,6 +41,15 @@ class _MainMenuState extends State<MainMenu> {
 
     return Stack(
       children: [
+        // Static Background to prevent ghosting
+        Positioned.fill(
+          child: Image.asset(
+            'assets/images/airport_london.jpg',
+            fit: BoxFit.cover,
+            color: Colors.black.withOpacity(0.6),
+            colorBlendMode: BlendMode.darken,
+          ),
+        ),
         Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -28,12 +28,16 @@ A premium, high-stakes Air Traffic Control simulation built with Flutter and Fla
 - **Environment-Aware Infrastructure**: Intelligent build system that automatically swaps between **Development** and **Production** Firebase configurations.
 - **Secure Persistence**: Integrated session management—log in once, stay authenticated across app launches.
 
-### 5. Immersion & Feedback
-- **ATC Voice Announcements**: Real-time synthesized voice feedback for all major events (Touchdown, Parked, Milestones).
-- **Radar Entry Pings**: Instant audio-visual alerts (Radar Ping + Flight Number) when new aircraft enter the sector.
-- **Immersive Takeoff Audio**: Realistic engine roar that dynamically fades and drifts away as the aircraft departs the radar range.
-- **Precision Drag-Drop**: High-precision collision detection (30px) for parking at gates with automatic snap-back for invalid positions.
-- **Ambient Atmosphere**: Immersive airport crowd ambiance on all menu and selection screens.
+### 5. Career Progression & Persistence
+- **Global Landing Tracker**: Tracks total successful landings across all play sessions to calculate your ATC rank.
+- **Level Unlocking System**: 10 international airports are now gated behind performance milestones (e.g., Reach 10 landings for JFK, 500 for Suvarnabhumi).
+- **Persistent High Scores**: Local storage saves the Top 5 scores for every airport, allowing you to compete against your own records.
+- **Dynamic Unlock Alerts**: Visual "NEW LEVEL UNLOCKED" notifications on the mission summary screen when milestones are reached.
+
+### 6. Premium Control Refinements
+- **Magnetic Gate Snapping**: Aircraft now "snap" into docking position when dragged within 40 pixels of their target gate, ensuring perfect alignment.
+- **Tactile Feedback**: Integrated haptic vibration when aircraft snap into gates, providing a physical sense of docking.
+- **Success Particles**: Explosive green particle effects celebrate every successful docking at the gate.
 - **Milestone Celebrations**: "Hurrah!" voice announcements and festive balloon particle effects at major score milestones (1k, 3k, 5k, etc.).
 - **Premium Aesthetics**: Dark-themed industrial design with vibrant neon accents and high-contrast typography.
 
@@ -75,6 +79,8 @@ The **Flight Manual & Info** section includes a functional training deck where y
 - **Manual Alignment**: Redesigned the "Flight Manual" overlay with `SafeArea` and optimized padding for perfect alignment on modern iPhone screens.
 
 ### Gameplay Logic & Realism
+- **Career Progression Engine**: Integrated `PersistenceManager` to track global landings and manage multi-level unlocking logic.
+- **Magnetic Docking System**: Implemented distance-based snapping for gate parking with 40px magnetic pull and haptic confirmation.
 - **Runway Rotation**: Implemented a round-robin runway utilization system. ATC now cycles through all available runways for landings and takeoffs, significantly improving traffic flow.
 - **Flight Phase Integrity**: Enforced strict operational rules—planes must now fully land (`Touchdown`) before `TAXI` or `TAKEOFF` commands become available.
 - **Instant Engagement**: Reduced the initial aircraft spawn delay to 200ms, getting players into the action immediately upon game start.

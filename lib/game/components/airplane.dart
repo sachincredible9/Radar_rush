@@ -339,7 +339,19 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
   @override
   void onDragUpdate(DragUpdateEvent event) {
     if (state == PlaneState.readyToPark) {
+      final oldPos = position.clone();
       position += event.localDelta;
+      
+      if (targetGate != null) {
+        double dist = position.distanceTo(targetGate!);
+        // Magnetic Snap: If within 40 pixels, snap to gate
+        if (dist < 40) {
+          position = targetGate!.clone();
+          if (oldPos.distanceTo(targetGate!) >= 40) {
+            AudioManager.vibrate(); // Subtle feedback when snapping
+          }
+        }
+      }
     }
   }
 
@@ -347,24 +359,47 @@ class Airplane extends SpriteComponent with HasGameRef<AirplaneLandingGame>, Col
   void onDragEnd(DragEndEvent event) {
     if (state == PlaneState.readyToPark && targetGate != null) {
       double dist = position.distanceTo(targetGate!);
-      // Strict precision: must be very close to the gate center (within 30 pixels)
-      // Expanded precision: more forgiving on small screens (60 pixels)
-      if (dist < 60) {
+      if (dist < 15) { // Tightened tolerance because of snapping
         state = PlaneState.atGate;
-        position = targetGate!.clone(); // Pixel-perfect alignment
+        position = targetGate!.clone(); 
         angle = 0;
         _parkingTimer = 0;
         _canTakeoff = false;
         gameRef.addPoints(500);
-        AudioManager.announce('$flightNumber docked successfully. Ground servicing started.');
+        
+        // Celebration particles at gate
+        _triggerSuccessParticles();
+        
+        AudioManager.playSfx('airport_selection.mp3');
+        AudioManager.announce('$flightNumber docked. Ground servicing started.');
       } else {
-        // Snap back to the apron entry point
         if (_readyPosition != null) {
           position = _readyPosition!.clone();
           AudioManager.announce('Incorrect gate. Move $flightNumber to the RED designated gate.');
         }
       }
     }
+  }
+
+  void _triggerSuccessParticles() {
+    final random = Random();
+    gameRef.world.add(
+      ParticleSystemComponent(
+        position: position.clone(),
+        particle: Particle.generate(
+          count: 15,
+          lifespan: 1.0,
+          generator: (i) => AcceleratedParticle(
+            acceleration: Vector2(0, 100),
+            speed: Vector2(random.nextDouble() * 100 - 50, random.nextDouble() * 100 - 50),
+            child: CircleParticle(
+              radius: random.nextDouble() * 3 + 2,
+              paint: Paint()..color = Colors.greenAccent,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   void command(String cmd) {

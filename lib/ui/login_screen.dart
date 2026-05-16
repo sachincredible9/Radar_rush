@@ -126,99 +126,109 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           ),
           
-          Center(
-            child: Padding(
+          SafeArea(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 40),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo / Icon
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.cyan, width: 2),
-                      boxShadow: [
-                        BoxShadow(color: Colors.cyan.withOpacity(0.3), blurRadius: 20, spreadRadius: 5),
-                      ],
-                    ),
-                    child: const Icon(Icons.airplanemode_active, color: Colors.cyan, size: 60),
-                  ).animate().scale(duration: 800.ms, curve: Curves.elasticOut),
-                  
-                  const SizedBox(height: 40),
-                  
-                  Text(
-                    'RADAR RUSH',
-                    style: GoogleFonts.orbitron(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4,
-                    ),
-                  ).animate().shimmer(duration: 2.seconds),
-                  
-                  Text(
-                    'AUTHORIZE ACCESS',
-                    style: GoogleFonts.inter(
-                      color: Colors.white54,
-                      fontSize: 14,
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  
-                  const SizedBox(height: 60),
-                  
-                  if (_isLoading)
-                    const CircularProgressIndicator(color: Colors.cyan)
-                  else ...[
-                    // Form Section for Email/Password
-                    _buildEmailForm(),
-                    
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 20),
-                      child: Row(
-                        children: [
-                          Expanded(child: Divider(color: Colors.white24)),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            child: Text('OR', style: TextStyle(color: Colors.white24, fontSize: 12)),
-                          ),
-                          Expanded(child: Divider(color: Colors.white24)),
-                        ],
-                      ),
-                    ),
-
-                    if (Platform.isIOS) ...[
-                      // Apple first on iOS
-                      SignInWithAppleButton(
-                        onPressed: _handleAppleSignIn,
-                        style: SignInWithAppleButtonStyle.black,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildGoogleButton(),
-                    ] else ...[
-                      // Google first on Android/Others
-                      _buildGoogleButton(),
-                      if (Platform.isIOS || Platform.isMacOS) ...[
-                        const SizedBox(height: 16),
-                        SignInWithAppleButton(
-                          onPressed: _handleAppleSignIn,
-                          style: SignInWithAppleButtonStyle.black,
-                          borderRadius: BorderRadius.circular(12),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 40),
+                      // Logo / Icon
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.cyan, width: 2),
+                          boxShadow: [
+                            BoxShadow(color: Colors.cyan.withOpacity(0.3), blurRadius: 20, spreadRadius: 5),
+                          ],
                         ),
+                        child: const Icon(Icons.airplanemode_active, color: Colors.cyan, size: 60),
+                      ).animate().scale(duration: 800.ms, curve: Curves.elasticOut),
+                      
+                      const SizedBox(height: 40),
+                      
+                      Text(
+                        'RADAR RUSH',
+                        style: GoogleFonts.orbitron(
+                          color: Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 4,
+                        ),
+                      ).animate().shimmer(duration: 2.seconds),
+                      
+                      Text(
+                        'AUTHORIZE ACCESS',
+                        style: GoogleFonts.inter(
+                          color: Colors.white54,
+                          fontSize: 14,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 60),
+                      
+                      if (_isLoading)
+                        const CircularProgressIndicator(color: Colors.cyan)
+                      else ...[
+                        // Form Section for Email/Password
+                        _buildEmailForm(),
+                        
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Row(
+                            children: [
+                              Expanded(child: Divider(color: Colors.white24)),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 10),
+                                child: Text('OR', style: TextStyle(color: Colors.white24, fontSize: 12)),
+                              ),
+                              Expanded(child: Divider(color: Colors.white24)),
+                            ],
+                          ),
+                        ),
+
+                        if (Platform.isIOS) ...[
+                          // Apple first on iOS
+                          SignInWithAppleButton(
+                            onPressed: _handleAppleSignIn,
+                            style: SignInWithAppleButtonStyle.black,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildGoogleButton(),
+                        ] else ...[
+                          // Google first on Android/Others
+                          _buildGoogleButton(),
+                          if (Platform.isIOS || Platform.isMacOS) ...[
+                            const SizedBox(height: 16),
+                            SignInWithAppleButton(
+                              onPressed: _handleAppleSignIn,
+                              style: SignInWithAppleButtonStyle.black,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ],
+                        ],
                       ],
+                      
+                      const Spacer(),
+                      const SizedBox(height: 40),
+                      
+                      Text(
+                        'SECURE TERMINAL CONNECTION',
+                        style: GoogleFonts.inter(color: Colors.white24, fontSize: 10),
+                      ),
+                      const SizedBox(height: 20),
                     ],
-                  ],
-                  
-                  const SizedBox(height: 40),
-                  
-                  Text(
-                    'SECURE TERMINAL CONNECTION',
-                    style: GoogleFonts.inter(color: Colors.white24, fontSize: 10),
                   ),
-                ],
+                ),
               ),
             ),
           ),
@@ -226,9 +236,11 @@ class _LoginScreenState extends State<LoginScreen> {
           Positioned(
             bottom: 10,
             right: 10,
-            child: Text(
-              _appVersion,
-              style: GoogleFonts.inter(color: Colors.white12, fontSize: 10),
+            child: SafeArea(
+              child: Text(
+                _appVersion,
+                style: GoogleFonts.inter(color: Colors.white12, fontSize: 10),
+              ),
             ),
           ),
         ],

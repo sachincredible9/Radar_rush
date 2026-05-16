@@ -10,6 +10,7 @@ import 'components/gate.dart';
 import 'level_config.dart';
 import 'audio_manager.dart';
 import '../analytics_manager.dart';
+import '../persistence_manager.dart';
 
 enum GameState { menu, playing, gameOver, success }
 
@@ -94,20 +95,25 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     });
   }
 
-  void resetToMenu() {
-    state = GameState.menu;
+  void clearWorld() {
     world.removeAll(world.children);
     selectedPlane = null;
+    spawnTimer = 0;
+    elapsedTime = 0;
+  }
+
+  void resetToMenu() {
+    state = GameState.menu;
+    clearWorld();
     overlays.clear();
     overlays.add('MainMenu');
     AudioManager.stopBackground();
+    AudioManager.stopCrowdAmbiance();
   }
 
   void backToLevelSelector() {
     state = GameState.menu;
-    // Clear planes and particles, but keep world clean
-    world.removeAll(world.children.whereType<Airplane>().toList());
-    selectedPlane = null;
+    clearWorld();
     overlays.clear();
     overlays.add('LevelSelector');
     
@@ -277,11 +283,16 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     }
   }
 
+
   void onGameOver(bool success) {
     state = success ? GameState.success : GameState.gameOver;
     overlays.remove('HUD');
     overlays.add('GameOver');
     if (!success) AudioManager.playSfx('collision.mp3');
+
+    // Save persistence data
+    PersistenceManager.saveScore(currentLevel.iataCode, score);
+    PersistenceManager.incrementTotalLandings(landings);
 
     AnalyticsManager.logGameOver(
       score: score, 
