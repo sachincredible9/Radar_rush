@@ -1,1 +1,1 @@
-https://radarrush.app/privacy
+https://radarrush.netlify.app/
