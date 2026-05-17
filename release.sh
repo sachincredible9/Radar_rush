@@ -161,6 +161,8 @@ if [ "$RUN_ALL" = "true" ]; then
 
     # 2. iOS Prod
     log_info "Starting iOS Production Deployment Flow..."
+    log_info "Building production IPA via Flutter (stripping simulator architectures)..."
+    $FLUTTER_BIN build ipa --release --export-method app-store
     cd ios
     log_info "Installing CocoaPods dependencies..."
     pod install
@@ -207,7 +209,11 @@ if [ "$PLATFORM" = "ios" ]; then
         run_fastlane_ios beta
         log_success "iOS Local Development Build successfully generated!"
     elif [ "$ENV" = "prod" ]; then
-        log_info "Generating Screenshots, Building release IPA, and deploying to Apple App Store..."
+        log_info "Building production IPA via Flutter (stripping simulator architectures)..."
+        cd ..
+        $FLUTTER_BIN build ipa --release --export-method app-store
+        cd ios
+        log_info "Generating Screenshots and deploying to Apple App Store..."
         run_fastlane_ios release
         log_success "iOS Production Release successfully submitted to the App Store!"
     else

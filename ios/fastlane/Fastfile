@@ -13,8 +13,11 @@ platform :ios do
   desc "Capture screenshots and upload to the App Store"
   lane :release do
     snapshot
-    build_app(scheme: "Runner")
-    deliver(force: true, skip_metadata: true)
+    deliver(
+      force: true,
+      skip_metadata: true,
+      ipa: "../build/ios/ipa/Runner.ipa"
+    )
   end
 
   desc "Fetch metadata from App Store Connect"
