@@ -366,7 +366,7 @@ class _HUDState extends State<HUD> {
           () {
             AudioManager.toggleMute();
             if (!AudioManager.isMuted) {
-              AudioManager.playBackground();
+              AudioManager.playRadarBackground();
             }
             setState(() {});
           },

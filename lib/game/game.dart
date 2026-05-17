@@ -88,7 +88,7 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     overlays.remove('GameOver');
     AudioManager.stopCrowdAmbiance();
     overlays.add('HUD');
-    AudioManager.playBackground();
+    AudioManager.playRadarBackground();
     // Stop selection music after a short delay to allow it to be heard during transition
     Future.delayed(const Duration(milliseconds: 1500), () {
       AudioManager.stopSelectionMusic();
@@ -107,7 +107,7 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     clearWorld();
     overlays.clear();
     overlays.add('MainMenu');
-    AudioManager.stopBackground();
+    AudioManager.stopRadarBackground();
     AudioManager.stopCrowdAmbiance();
   }
 
@@ -117,7 +117,7 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     overlays.clear();
     overlays.add('LevelSelector');
     
-    AudioManager.stopBackground();
+    AudioManager.stopRadarBackground();
     AudioManager.playSelectionMusic();
   }
 

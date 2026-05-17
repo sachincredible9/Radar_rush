@@ -1,0 +1,22 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    increment_build_number(xcodeproj: "Runner.xcodeproj")
+    build_app(scheme: "Runner")
+    upload_to_testflight
+  end
+
+  desc "Capture screenshots and upload to the App Store"
+  lane :release do
+    snapshot
+    build_app(scheme: "Runner")
+    deliver(force: true)
+  end
+
+  desc "Fetch metadata from App Store Connect"
+  lane :download_metadata do
+    deliver(download_metadata: true, skip_screenshots: true)
+  end
+end

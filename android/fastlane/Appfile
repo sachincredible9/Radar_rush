@@ -1,0 +1,2 @@
+json_key_file("android/fastlane/google_play_key.json") # Path to the json secret file - login to Google Play Console to create one
+package_name("com.radarrush.app") # The package name of your app

@@ -32,6 +32,7 @@ class AudioManager {
         'airport_crowd.wav',
         'airplane_takeoff.wav',
         'radar_ping.mp3',
+        'radar_music.mp3',
       ]);
       _initialized = true;
     } catch (e) {
@@ -56,6 +57,20 @@ class AudioManager {
     if (!_initialized || isMuted) return;
     try {
       FlameAudio.bgm.play('engine_hum.mp3', volume: 0.1);
+    } catch (_) {}
+  }
+
+  static void playRadarBackground() {
+    if (!_initialized || isMuted) return;
+    try {
+      // Loop the radar background music (which contains ATC chatter)
+      FlameAudio.bgm.play('radar_music.mp3', volume: 0.3);
+    } catch (_) {}
+  }
+
+  static void stopRadarBackground() {
+    try {
+      FlameAudio.bgm.stop();
     } catch (_) {}
   }
 
