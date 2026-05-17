@@ -88,7 +88,7 @@ bump_version() {
 # Run all platforms and environments if no arguments are provided
 RUN_ALL=false
 if [ "$#" -eq 0 ]; then
-    log_info "No arguments provided. Initiating FULL Multi-Platform Release (iOS & Android, Test & Prod)..."
+    log_info "No arguments provided. Initiating Apple/iOS Releases (Test & Prod)..."
     RUN_ALL=true
 elif [ "$#" -ne 2 ]; then
     usage
@@ -170,21 +170,7 @@ if [ "$RUN_ALL" = "true" ]; then
     cd ..
     log_success "iOS Production Release successfully submitted to the App Store!"
 
-    # 3. Android Test
-    log_info "Starting Android Test Deployment Flow..."
-    cd android
-    fastlane beta
-    cd ..
-    log_success "Android Test Release successfully uploaded to Google Play Internal track!"
-
-    # 4. Android Prod
-    log_info "Starting Android Production Deployment Flow..."
-    cd android
-    fastlane deploy
-    cd ..
-    log_success "Android Production Release successfully uploaded to Google Play Production!"
-
-    log_success "🔥 FULL MULTI-PLATFORM RELEASE SUCCESSFULLY COMPLETED!"
+    log_success "🔥 APPLE/iOS RELEASES SUCCESSFULLY COMPLETED!"
     exit 0
 fi
 
