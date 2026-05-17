@@ -11,6 +11,7 @@ export FASTLANE_USER="ribheer@gmail.com"
 export FASTLANE_PASSWORD="Toronto@12345"
 export DELIVER_USER="ribheer@gmail.com"
 export DELIVER_PASSWORD="Toronto@12345"
+export FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD="tgjz-rxna-ihcb-eers"
 
 # Color codes for pretty terminal printing
 RED='\033[0;31m'
@@ -114,20 +115,23 @@ fi
 
 show_ios_signing_diagnostic() {
     echo -e "\n${RED}================================================================================${NC}"
-    log_error "iOS BUILD FAILED DUE TO SIGNING OR CAPABILITY MISMATCH!"
+    log_error "iOS DEPLOYMENT STEP ENCOUNTERED AN ERROR!"
     echo -e "--------------------------------------------------------------------------------"
-    echo -e "Reason: Your current wildcard provisioning profile (*) does not support"
-    echo -e "        the 'Sign In with Apple' capability that Radar Rush requires."
+    echo -e "${YELLOW}Please check the two most common causes below:${NC}"
     echo -e ""
-    echo -e "${YELLOW}How to fix this in Xcode:${NC}"
-    echo -e "  1. Open ${CYAN}ios/Runner.xcworkspace${NC} in Xcode."
-    echo -e "  2. In the left panel, select the ${CYAN}Runner${NC} project root."
-    echo -e "  3. Select the ${CYAN}Runner${NC} Target and open the ${CYAN}Signing & Capabilities${NC} tab."
-    echo -e "  4. Ensure your developer Team is selected."
-    echo -e "  5. Verify that ${CYAN}Sign In with Apple${NC} is listed under Capabilities."
-    echo -e "     (If missing, click '+ Capability' and search/add 'Sign In with Apple')."
-    echo -e "  6. If using automatic signing, Xcode will automatically register an explicit App ID."
-    echo -e "  7. Once configured, re-run: ${GREEN}./release.sh${NC}"
+    echo -e "${CYAN}1. Xcode Code Signing & Capabilities (Wildcard Profile Match)${NC}"
+    echo -e "   If the build failed during compilation/archive:"
+    echo -e "   - Open ${CYAN}ios/Runner.xcworkspace${NC} in Xcode."
+    echo -e "   - Select the ${CYAN}Runner${NC} project root -> ${CYAN}Runner${NC} Target -> ${CYAN}Signing & Capabilities${NC}."
+    echo -e "   - Ensure a valid Team is selected and ${CYAN}Sign In with Apple${NC} is in Capabilities."
+    echo -e ""
+    echo -e "${CYAN}2. Apple Upload Credentials & App Store Record${NC}"
+    echo -e "   If the build failed during upload (deliver/altool):"
+    echo -e "   - Make sure you generated an ${CYAN}App-Specific Password${NC} at ${CYAN}account.apple.com${NC}."
+    echo -e "   - Ensure the app record for bundle ID ${CYAN}com.radarrush.app${NC} is created in App Store Connect."
+    echo -e "     (Go to ${CYAN}appstoreconnect.apple.com -> My Apps -> '+' -> New App${NC} and register it)."
+    echo -e ""
+    echo -e "Once you have verified these settings, re-run: ${GREEN}./release.sh${NC}"
     echo -e "${RED}================================================================================${NC}\n"
 }
 
