@@ -141,15 +141,19 @@ if [ "$RUN_ALL" = "true" ]; then
     $FLUTTER_BIN pub get
 
     # 1. iOS Test
-    log_info "Starting iOS Test Deployment Flow..."
+    log_info "Starting iOS Test Deployment Flow (Development Build)..."
     cd ios
+    log_info "Installing CocoaPods dependencies..."
+    pod install
     run_fastlane_ios beta
     cd ..
-    log_success "iOS Test Release successfully uploaded to TestFlight!"
+    log_success "iOS Local Development Build successfully generated!"
 
     # 2. iOS Prod
     log_info "Starting iOS Production Deployment Flow..."
     cd ios
+    log_info "Installing CocoaPods dependencies..."
+    pod install
     run_fastlane_ios release
     cd ..
     log_success "iOS Production Release successfully submitted to the App Store!"
@@ -185,11 +189,13 @@ $FLUTTER_BIN pub get
 if [ "$PLATFORM" = "ios" ]; then
     log_info "Starting iOS Deployment Flow..."
     cd ios
+    log_info "Installing CocoaPods dependencies..."
+    pod install
     
     if [ "$ENV" = "test" ]; then
-        log_info "Building IPA and deploying to Apple TestFlight..."
+        log_info "Building IPA using Local Development Certificates..."
         run_fastlane_ios beta
-        log_success "iOS Test Release successfully uploaded to TestFlight!"
+        log_success "iOS Local Development Build successfully generated!"
     elif [ "$ENV" = "prod" ]; then
         log_info "Generating Screenshots, Building release IPA, and deploying to Apple App Store..."
         run_fastlane_ios release
