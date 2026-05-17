@@ -33,13 +33,57 @@ usage() {
     echo "Usage: $0 [ios|android] [test|prod]"
     echo "  Platforms: ios, android"
     echo "  Environments: test, prod"
+    echo "  No Arguments: Runs ALL releases (iOS & Android, Test & Prod)"
     echo "  Example: $0 ios test"
     exit 1
 }
 
-# Validate arguments
-if [ "$#" -ne 2 ]; then
+# Run all platforms and environments if no arguments are provided
+RUN_ALL=false
+if [ "$#" -eq 0 ]; then
+    log_info "No arguments provided. Initiating FULL Multi-Platform Release (iOS & Android, Test & Prod)..."
+    RUN_ALL=true
+elif [ "$#" -ne 2 ]; then
     usage
+fi
+
+if [ "$RUN_ALL" = "true" ]; then
+    # Ensure clean build environment
+    log_info "Cleaning Flutter build cache..."
+    flutter clean
+    log_info "Fetching Flutter dependencies..."
+    flutter pub get
+
+    # 1. iOS Test
+    log_info "Starting iOS Test Deployment Flow..."
+    cd ios
+    bundle exec fastlane beta
+    cd ..
+    log_success "iOS Test Release successfully uploaded to TestFlight!"
+
+    # 2. iOS Prod
+    log_info "Starting iOS Production Deployment Flow..."
+    cd ios
+    bundle exec fastlane release
+    cd ..
+    log_success "iOS Production Release successfully submitted to the App Store!"
+
+    # 3. Android Test
+    log_info "Starting Android Test Deployment Flow..."
+    cd android
+    bundle exec fastlane beta
+    cd ..
+    log_success "Android Test Release successfully uploaded to Google Play Internal track!"
+
+    # 4. Android Prod
+    log_info "Starting Android Production Deployment Flow..."
+    cd android
+    bundle exec fastlane deploy
+    cd ..
+    log_success "Android Production Release successfully uploaded to Google Play Production!"
+
+    log_success "🔥 FULL MULTI-PLATFORM RELEASE SUCCESSFULLY COMPLETED!"
+    exit 0
 fi
 
 PLATFORM=$1
