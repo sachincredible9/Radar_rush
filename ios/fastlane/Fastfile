@@ -14,7 +14,7 @@ platform :ios do
   lane :release do
     snapshot
     build_app(scheme: "Runner")
-    deliver(force: true)
+    deliver(force: true, skip_metadata: true)
   end
 
   desc "Fetch metadata from App Store Connect"
