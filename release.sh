@@ -38,6 +38,46 @@ usage() {
     exit 1
 }
 
+bump_version() {
+    log_info "Bumping version in pubspec.yaml..."
+    # Find the current version line (e.g., version: 1.0.0+1)
+    VERSION_LINE=$(grep "^version: " pubspec.yaml)
+    if [ -z "$VERSION_LINE" ]; then
+        log_error "Could not find version line in pubspec.yaml"
+        exit 1
+    fi
+    
+    # Extract version name (e.g. 1.0.0) and build number (e.g. 1)
+    VERSION_FULL=${VERSION_LINE#version: }
+    VERSION_NAME=${VERSION_FULL%+*}
+    BUILD_NUMBER=${VERSION_FULL#*+}
+    
+    # Split version name into major, minor, patch
+    IFS='.' read -r -a VERSION_PARTS <<< "$VERSION_NAME"
+    MAJOR=${VERSION_PARTS[0]}
+    MINOR=${VERSION_PARTS[1]}
+    PATCH=${VERSION_PARTS[2]}
+    
+    # Increment build number
+    NEW_BUILD_NUMBER=$((BUILD_NUMBER + 1))
+    
+    # Increment patch version
+    NEW_PATCH=$((PATCH + 1))
+    NEW_VERSION_NAME="${MAJOR}.${MINOR}.${NEW_PATCH}"
+    NEW_VERSION_FULL="${NEW_VERSION_NAME}+${NEW_BUILD_NUMBER}"
+    
+    log_info "Old Version: $VERSION_FULL"
+    log_info "New Version: $NEW_VERSION_FULL"
+    
+    # Update pubspec.yaml
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i "" "s/^version: .*/version: $NEW_VERSION_FULL/" pubspec.yaml
+    else
+        sed -i "s/^version: .*/version: $NEW_VERSION_FULL/" pubspec.yaml
+    fi
+    log_success "Successfully bumped version to $NEW_VERSION_FULL in pubspec.yaml!"
+}
+
 # Run all platforms and environments if no arguments are provided
 RUN_ALL=false
 if [ "$#" -eq 0 ]; then
@@ -46,6 +86,9 @@ if [ "$#" -eq 0 ]; then
 elif [ "$#" -ne 2 ]; then
     usage
 fi
+
+# Automatically bump version on each release execution
+bump_version
 
 # Detect Flutter path
 FLUTTER_BIN="flutter"
