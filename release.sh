@@ -47,12 +47,28 @@ elif [ "$#" -ne 2 ]; then
     usage
 fi
 
+# Detect Flutter path
+FLUTTER_BIN="flutter"
+if ! command -v flutter &> /dev/null; then
+    log_warning "Flutter not found in global PATH. Searching default custom paths..."
+    if [ -f "/Users/sachin/.gemini/antigravity/flutter/bin/flutter" ]; then
+        FLUTTER_BIN="/Users/sachin/.gemini/antigravity/flutter/bin/flutter"
+        log_success "Found Flutter at $FLUTTER_BIN"
+    elif [ -f "$HOME/.gemini/antigravity/flutter/bin/flutter" ]; then
+        FLUTTER_BIN="$HOME/.gemini/antigravity/flutter/bin/flutter"
+        log_success "Found Flutter at $FLUTTER_BIN"
+    else
+        log_error "Flutter command not found. Please ensure Flutter is installed and added to your PATH."
+        exit 1
+    fi
+fi
+
 if [ "$RUN_ALL" = "true" ]; then
     # Ensure clean build environment
     log_info "Cleaning Flutter build cache..."
-    flutter clean
+    $FLUTTER_BIN clean
     log_info "Fetching Flutter dependencies..."
-    flutter pub get
+    $FLUTTER_BIN pub get
 
     # 1. iOS Test
     log_info "Starting iOS Test Deployment Flow..."
@@ -91,9 +107,9 @@ ENV=$2
 
 # Ensure clean build environment
 log_info "Cleaning Flutter build cache..."
-flutter clean
+$FLUTTER_BIN clean
 log_info "Fetching Flutter dependencies..."
-flutter pub get
+$FLUTTER_BIN pub get
 
 # --- iOS DEPLOYMENT ---
 if [ "$PLATFORM" = "ios" ]; then
