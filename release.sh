@@ -6,6 +6,12 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+# Export Apple Developer credentials for hands-free automation
+export FASTLANE_USER="ribheer@gmail.com"
+export FASTLANE_PASSWORD="Toronto@12345"
+export DELIVER_USER="ribheer@gmail.com"
+export DELIVER_PASSWORD="Toronto@12345"
+
 # Color codes for pretty terminal printing
 RED='\033[0;31m'
 GREEN='\033[0;32m'
