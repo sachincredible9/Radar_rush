@@ -15,6 +15,7 @@ platform :ios do
     snapshot
     deliver(
       force: true,
+      skip_metadata: true,
       ipa: "../build/ios/ipa/Radar Rush.ipa"
     )
   end
