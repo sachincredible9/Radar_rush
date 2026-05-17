@@ -106,6 +106,33 @@ if ! command -v flutter &> /dev/null; then
     fi
 fi
 
+show_ios_signing_diagnostic() {
+    echo -e "\n${RED}================================================================================${NC}"
+    log_error "iOS BUILD FAILED DUE TO SIGNING OR CAPABILITY MISMATCH!"
+    echo -e "--------------------------------------------------------------------------------"
+    echo -e "Reason: Your current wildcard provisioning profile (*) does not support"
+    echo -e "        the 'Sign In with Apple' capability that Radar Rush requires."
+    echo -e ""
+    echo -e "${YELLOW}How to fix this in Xcode:${NC}"
+    echo -e "  1. Open ${CYAN}ios/Runner.xcworkspace${NC} in Xcode."
+    echo -e "  2. In the left panel, select the ${CYAN}Runner${NC} project root."
+    echo -e "  3. Select the ${CYAN}Runner${NC} Target and open the ${CYAN}Signing & Capabilities${NC} tab."
+    echo -e "  4. Ensure your developer Team is selected."
+    echo -e "  5. Verify that ${CYAN}Sign In with Apple${NC} is listed under Capabilities."
+    echo -e "     (If missing, click '+ Capability' and search/add 'Sign In with Apple')."
+    echo -e "  6. If using automatic signing, Xcode will automatically register an explicit App ID."
+    echo -e "  7. Once configured, re-run: ${GREEN}./release.sh${NC}"
+    echo -e "${RED}================================================================================${NC}\n"
+}
+
+run_fastlane_ios() {
+    local lane=$1
+    if ! fastlane "$lane"; then
+        show_ios_signing_diagnostic
+        exit 65
+    fi
+}
+
 if [ "$RUN_ALL" = "true" ]; then
     # Ensure clean build environment
     log_info "Cleaning Flutter build cache..."
@@ -116,14 +143,14 @@ if [ "$RUN_ALL" = "true" ]; then
     # 1. iOS Test
     log_info "Starting iOS Test Deployment Flow..."
     cd ios
-    fastlane beta
+    run_fastlane_ios beta
     cd ..
     log_success "iOS Test Release successfully uploaded to TestFlight!"
 
     # 2. iOS Prod
     log_info "Starting iOS Production Deployment Flow..."
     cd ios
-    fastlane release
+    run_fastlane_ios release
     cd ..
     log_success "iOS Production Release successfully submitted to the App Store!"
 
@@ -161,11 +188,11 @@ if [ "$PLATFORM" = "ios" ]; then
     
     if [ "$ENV" = "test" ]; then
         log_info "Building IPA and deploying to Apple TestFlight..."
-        fastlane beta
+        run_fastlane_ios beta
         log_success "iOS Test Release successfully uploaded to TestFlight!"
     elif [ "$ENV" = "prod" ]; then
         log_info "Generating Screenshots, Building release IPA, and deploying to Apple App Store..."
-        fastlane release
+        run_fastlane_ios release
         log_success "iOS Production Release successfully submitted to the App Store!"
     else
         log_error "Invalid environment '$ENV' for iOS. Use 'test' or 'prod'."
