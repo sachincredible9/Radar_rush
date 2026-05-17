@@ -143,6 +143,63 @@ run_fastlane_ios() {
     fi
 }
 
+archive_release_build() {
+    local platform=$1
+    local env=$2
+    
+    # 1. Retrieve Current Version
+    local version_line=$(grep "^version: " pubspec.yaml)
+    local version_full=${version_line#version: }
+    local version_name=${version_full%+*}
+    local build_num=${version_full#*+}
+    local version="${version_name}-${build_num}"
+    
+    # 2. Date String
+    local date_str=$(date +%Y-%m-%d)
+    
+    # 3. Create releases archive folder
+    mkdir -p releases
+    
+    # 4. Define base archive name: appname_version_date_environment
+    local archive_base="Radar_Rush_${version}_${date_str}_${env}"
+    
+    log_info "Archiving build artifact to releases/ folder..."
+    
+    if [ "$platform" = "ios" ]; then
+        if [ "$env" = "test" ]; then
+            # Search for generated development IPA in ios/
+            local dev_ipa=$(find ios -maxdepth 2 -name "*.ipa" | head -n 1)
+            if [ -n "$dev_ipa" ] && [ -f "$dev_ipa" ]; then
+                cp "$dev_ipa" "releases/${archive_base}.ipa"
+                log_success "Archived development iOS build to: releases/${archive_base}.ipa"
+            else
+                if [ -f "build/ios/ipa/Radar Rush.ipa" ]; then
+                    cp "build/ios/ipa/Radar Rush.ipa" "releases/${archive_base}.ipa"
+                    log_success "Archived iOS test build to: releases/${archive_base}.ipa"
+                else
+                    log_warning "Could not find development iOS IPA file to archive."
+                fi
+            fi
+        elif [ "$env" = "prod" ]; then
+            if [ -f "build/ios/ipa/Radar Rush.ipa" ]; then
+                cp "build/ios/ipa/Radar Rush.ipa" "releases/${archive_base}.ipa"
+                log_success "Archived production iOS build to: releases/${archive_base}.ipa"
+            else
+                log_warning "Could not find production iOS IPA file to archive."
+            fi
+        fi
+    elif [ "$platform" = "android" ]; then
+        if [ -f "build/app/outputs/bundle/release/app-release.aab" ]; then
+            cp "build/app/outputs/bundle/release/app-release.aab" "releases/${archive_base}.aab"
+            log_success "Archived production Android AAB to: releases/${archive_base}.aab"
+        fi
+        if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+            cp "build/app/outputs/flutter-apk/app-release.apk" "releases/${archive_base}.apk"
+            log_success "Archived Android APK to: releases/${archive_base}.apk"
+        fi
+    fi
+}
+
 if [ "$RUN_ALL" = "true" ]; then
     # Ensure clean build environment
     log_info "Cleaning Flutter build cache..."
@@ -157,6 +214,7 @@ if [ "$RUN_ALL" = "true" ]; then
     pod install
     run_fastlane_ios beta
     cd ..
+    archive_release_build ios test
     log_success "iOS Local Development Build successfully generated!"
 
     # 2. iOS Prod
@@ -168,6 +226,7 @@ if [ "$RUN_ALL" = "true" ]; then
     pod install
     run_fastlane_ios release
     cd ..
+    archive_release_build ios prod
     log_success "iOS Production Release successfully submitted to the App Store!"
 
     log_success "🔥 APPLE/iOS RELEASES SUCCESSFULLY COMPLETED!"
@@ -193,6 +252,9 @@ if [ "$PLATFORM" = "ios" ]; then
     if [ "$ENV" = "test" ]; then
         log_info "Building IPA using Local Development Certificates..."
         run_fastlane_ios beta
+        cd ..
+        archive_release_build ios test
+        cd ios
         log_success "iOS Local Development Build successfully generated!"
     elif [ "$ENV" = "prod" ]; then
         log_info "Building production IPA via Flutter (stripping simulator architectures)..."
@@ -201,6 +263,9 @@ if [ "$PLATFORM" = "ios" ]; then
         cd ios
         log_info "Generating Screenshots and deploying to Apple App Store..."
         run_fastlane_ios release
+        cd ..
+        archive_release_build ios prod
+        cd ios
         log_success "iOS Production Release successfully submitted to the App Store!"
     else
         log_error "Invalid environment '$ENV' for iOS. Use 'test' or 'prod'."
@@ -216,10 +281,16 @@ elif [ "$PLATFORM" = "android" ]; then
     if [ "$ENV" = "test" ]; then
         log_info "Building Android App Bundle (AAB) and deploying to Google Play Internal Test Track..."
         fastlane beta
+        cd ..
+        archive_release_build android test
+        cd android
         log_success "Android Test Release successfully uploaded to Google Play Internal track!"
     elif [ "$ENV" = "prod" ]; then
         log_info "Building Android App Bundle (AAB) and deploying to Google Play Production..."
         fastlane deploy
+        cd ..
+        archive_release_build android prod
+        cd android
         log_success "Android Production Release successfully uploaded to Google Play Production!"
     else
         log_error "Invalid environment '$ENV' for Android. Use 'test' or 'prod'."
