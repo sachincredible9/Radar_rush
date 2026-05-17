@@ -116,28 +116,28 @@ if [ "$RUN_ALL" = "true" ]; then
     # 1. iOS Test
     log_info "Starting iOS Test Deployment Flow..."
     cd ios
-    bundle exec fastlane beta
+    fastlane beta
     cd ..
     log_success "iOS Test Release successfully uploaded to TestFlight!"
 
     # 2. iOS Prod
     log_info "Starting iOS Production Deployment Flow..."
     cd ios
-    bundle exec fastlane release
+    fastlane release
     cd ..
     log_success "iOS Production Release successfully submitted to the App Store!"
 
     # 3. Android Test
     log_info "Starting Android Test Deployment Flow..."
     cd android
-    bundle exec fastlane beta
+    fastlane beta
     cd ..
     log_success "Android Test Release successfully uploaded to Google Play Internal track!"
 
     # 4. Android Prod
     log_info "Starting Android Production Deployment Flow..."
     cd android
-    bundle exec fastlane deploy
+    fastlane deploy
     cd ..
     log_success "Android Production Release successfully uploaded to Google Play Production!"
 
@@ -161,11 +161,11 @@ if [ "$PLATFORM" = "ios" ]; then
     
     if [ "$ENV" = "test" ]; then
         log_info "Building IPA and deploying to Apple TestFlight..."
-        bundle exec fastlane beta
+        fastlane beta
         log_success "iOS Test Release successfully uploaded to TestFlight!"
     elif [ "$ENV" = "prod" ]; then
         log_info "Generating Screenshots, Building release IPA, and deploying to Apple App Store..."
-        bundle exec fastlane release
+        fastlane release
         log_success "iOS Production Release successfully submitted to the App Store!"
     else
         log_error "Invalid environment '$ENV' for iOS. Use 'test' or 'prod'."
@@ -180,11 +180,11 @@ elif [ "$PLATFORM" = "android" ]; then
     
     if [ "$ENV" = "test" ]; then
         log_info "Building Android App Bundle (AAB) and deploying to Google Play Internal Test Track..."
-        bundle exec fastlane beta
+        fastlane beta
         log_success "Android Test Release successfully uploaded to Google Play Internal track!"
     elif [ "$ENV" = "prod" ]; then
         log_info "Building Android App Bundle (AAB) and deploying to Google Play Production..."
-        bundle exec fastlane deploy
+        fastlane deploy
         log_success "Android Production Release successfully uploaded to Google Play Production!"
     else
         log_error "Invalid environment '$ENV' for Android. Use 'test' or 'prod'."
