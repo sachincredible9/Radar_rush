@@ -12,7 +12,6 @@ platform :ios do
 
   desc "Capture screenshots and upload to the App Store"
   lane :release do
-    snapshot
     deliver(
       force: true,
       skip_metadata: true,
