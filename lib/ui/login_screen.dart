@@ -9,7 +9,8 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'level_selector.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final VoidCallback? onPlayAsGuest;
+  const LoginScreen({super.key, this.onPlayAsGuest});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -216,6 +217,31 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ],
+                        ],
+
+                        if (widget.onPlayAsGuest != null) ...[
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 44,
+                            child: OutlinedButton(
+                              onPressed: widget.onPlayAsGuest,
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Colors.cyan, width: 1.5),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                backgroundColor: Colors.cyan.withOpacity(0.05),
+                              ),
+                              child: Text(
+                                'PLAY AS GUEST (OFFLINE)',
+                                style: GoogleFonts.orbitron(
+                                  color: Colors.cyanAccent,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 2,
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ],
                       

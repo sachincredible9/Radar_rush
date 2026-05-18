@@ -48,16 +48,24 @@ void main() async {
   runApp(const GameApp());
 }
 
-class GameApp extends StatelessWidget {
+class GameApp extends StatefulWidget {
   const GameApp({super.key});
+
+  @override
+  State<GameApp> createState() => _GameAppState();
+}
+
+class _GameAppState extends State<GameApp> {
+  bool _bypassAuth = false;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
-      home: _isFirebaseInitialized 
-        ? StreamBuilder(
+      home: _bypassAuth 
+        ? const GameScreen()
+        : StreamBuilder(
             stream: getIt<AuthService>().authStateChanges,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -71,10 +79,15 @@ class GameApp extends StatelessWidget {
                 return const GameScreen();
               }
               
-              return const LoginScreen();
+              return LoginScreen(
+                onPlayAsGuest: () {
+                  setState(() {
+                    _bypassAuth = true;
+                  });
+                },
+              );
             },
-          )
-        : const GameScreen(), // Fallback to GameScreen if Firebase is offline
+          ),
     );
   }
 }
