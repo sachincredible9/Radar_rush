@@ -108,6 +108,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isTablet = screenSize.width > 600;
+    
+    // Sleek responsive sizes
+    final double paddingHorizontal = isTablet ? 80.0 : 32.0;
+    final double logoSize = isTablet ? 130.0 : 96.0;
+    final double logoIconSize = isTablet ? 64.0 : 44.0;
+    final double titleFontSize = isTablet ? 36.0 : 26.0;
+    final double subtitleFontSize = isTablet ? 14.0 : 11.0;
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
@@ -130,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
           
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
+              padding: EdgeInsets.symmetric(horizontal: paddingHorizontal),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
                   minHeight: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
@@ -138,12 +148,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: IntrinsicHeight(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 20),
                       // Logo / Icon
                       Container(
-                        width: 110,
-                        height: 110,
+                        width: logoSize,
+                        height: logoSize,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.cyan, width: 2),
@@ -151,26 +162,30 @@ class _LoginScreenState extends State<LoginScreen> {
                             BoxShadow(color: Colors.cyan.withOpacity(0.3), blurRadius: 20, spreadRadius: 5),
                           ],
                         ),
-                        child: const Icon(Icons.airplanemode_active, color: Colors.cyan, size: 50),
+                        child: Icon(Icons.airplanemode_active, color: Colors.cyan, size: logoIconSize),
                       ).animate().scale(duration: 800.ms, curve: Curves.elasticOut),
                       
                       const SizedBox(height: 20),
                       
                       Text(
                         'RADAR RUSH',
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.orbitron(
                           color: Colors.white,
-                          fontSize: 28,
+                          fontSize: titleFontSize,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 4,
                         ),
                       ).animate().shimmer(duration: 2.seconds),
                       
+                      const SizedBox(height: 4),
+                      
                       Text(
                         'AUTHORIZE ACCESS',
+                        textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           color: Colors.white54,
-                          fontSize: 12,
+                          fontSize: subtitleFontSize,
                           letterSpacing: 2,
                         ),
                       ),
@@ -184,13 +199,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         _buildEmailForm(),
                         
                         const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20),
+                          padding: EdgeInsets.symmetric(vertical: 16),
                           child: Row(
                             children: [
                               Expanded(child: Divider(color: Colors.white24)),
                               Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 10),
-                                child: Text('OR', style: TextStyle(color: Colors.white24, fontSize: 12)),
+                                child: Text('OR', style: TextStyle(color: Colors.white24, fontSize: 11)),
                               ),
                               Expanded(child: Divider(color: Colors.white24)),
                             ],
@@ -204,13 +219,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: SignInWithAppleButtonStyle.black,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
                           _buildGoogleButton(),
                         ] else ...[
                           // Google first on Android/Others
                           _buildGoogleButton(),
                           if (Platform.isIOS || Platform.isMacOS) ...[
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 12),
                             SignInWithAppleButton(
                               onPressed: _handleAppleSignIn,
                               style: SignInWithAppleButtonStyle.black,
@@ -218,9 +233,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ],
+                      ],
 
                       if (widget.onPlayAsGuest != null) ...[
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         SizedBox(
                           width: double.infinity,
                           height: 44,
@@ -233,9 +249,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             child: Text(
                               'PLAY AS GUEST (OFFLINE)',
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.orbitron(
                                 color: Colors.cyanAccent,
-                                fontSize: 14,
+                                fontSize: isTablet ? 14 : 12,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 2,
                               ),
@@ -243,15 +260,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ],
-                    ],
-                    
-                    const SizedBox(height: 32),
+                      
+                      const SizedBox(height: 24),
                       
                       Text(
                         'SECURE TERMINAL CONNECTION',
-                        style: GoogleFonts.inter(color: Colors.white24, fontSize: 10),
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(color: Colors.white24, fontSize: 9),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
@@ -310,6 +327,7 @@ class _LoginScreenState extends State<LoginScreen> {
           onPressed: () => setState(() => _isRegistering = !_isRegistering),
           child: Text(
             _isRegistering ? 'ALREADY HAVE AN ACCOUNT? LOGIN' : 'NEW PILOT? REGISTER HERE',
+            textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.white54, fontSize: 12),
           ),
         ),
