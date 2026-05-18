@@ -4,13 +4,25 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseAuth? get _auth {
+    try {
+      return FirebaseAuth.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+  
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  User? get currentUser => _auth.currentUser;
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  User? get currentUser => _auth?.currentUser;
+  Stream<User?> get authStateChanges => _auth?.authStateChanges() ?? const Stream<User?>.empty();
 
   Future<User?> signInWithGoogle() async {
+    final auth = _auth;
+    if (auth == null) {
+      debugPrint('Google Sign-In failed: Firebase Auth is unavailable.');
+      return null;
+    }
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
@@ -21,7 +33,7 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await auth.signInWithCredential(credential);
       return userCredential.user;
     } catch (e) {
       debugPrint('Error during Google Sign-In: $e');
@@ -30,6 +42,11 @@ class AuthService {
   }
 
   Future<User?> signInWithApple() async {
+    final auth = _auth;
+    if (auth == null) {
+      debugPrint('Apple Sign-In failed: Firebase Auth is unavailable.');
+      return null;
+    }
     try {
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
@@ -44,7 +61,7 @@ class AuthService {
         accessToken: appleCredential.authorizationCode,
       );
 
-      final UserCredential userCredential = await _auth.signInWithCredential(credential);
+      final UserCredential userCredential = await auth.signInWithCredential(credential);
       return userCredential.user;
     } catch (e) {
       debugPrint('Error during Apple Sign-In: $e');
@@ -53,8 +70,13 @@ class AuthService {
   }
 
   Future<User?> signInWithEmail(String email, String password) async {
+    final auth = _auth;
+    if (auth == null) {
+      debugPrint('Email Sign-In failed: Firebase Auth is unavailable.');
+      return null;
+    }
     try {
-      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final UserCredential userCredential = await auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -66,8 +88,13 @@ class AuthService {
   }
 
   Future<User?> registerWithEmail(String email, String password) async {
+    final auth = _auth;
+    if (auth == null) {
+      debugPrint('Email Registration failed: Firebase Auth is unavailable.');
+      return null;
+    }
     try {
-      final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+      final UserCredential userCredential = await auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -79,7 +106,9 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
+    try {
+      await _auth?.signOut();
+    } catch (_) {}
     if (await _googleSignIn.isSignedIn()) {
       await _googleSignIn.signOut();
     }

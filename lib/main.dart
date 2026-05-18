@@ -23,16 +23,24 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   
-  // Phase 1 & 2: Resource, Data & DI Optimization
-  await setupServiceLocator();
-  await LevelConfig.loadLevels();
-
+  // Phase 1: Initialize Firebase first so FirebaseAuth references inside service constructors are valid
   try {
     await Firebase.initializeApp();
     _isFirebaseInitialized = true;
-    await getIt<AnalyticsService>().init();
   } catch (e) {
     debugPrint('Firebase initialization failed: $e');
+  }
+
+  // Phase 2: DI and Resource Configurations
+  await setupServiceLocator();
+  await LevelConfig.loadLevels();
+
+  if (_isFirebaseInitialized) {
+    try {
+      await getIt<AnalyticsService>().init();
+    } catch (e) {
+      debugPrint('Analytics initialization failed: $e');
+    }
   }
   
   await getIt<AudioService>().init();
