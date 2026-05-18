@@ -139,11 +139,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 20),
                       // Logo / Icon
                       Container(
-                        width: 120,
-                        height: 120,
+                        width: 110,
+                        height: 110,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.cyan, width: 2),
@@ -151,16 +151,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             BoxShadow(color: Colors.cyan.withOpacity(0.3), blurRadius: 20, spreadRadius: 5),
                           ],
                         ),
-                        child: const Icon(Icons.airplanemode_active, color: Colors.cyan, size: 60),
+                        child: const Icon(Icons.airplanemode_active, color: Colors.cyan, size: 50),
                       ).animate().scale(duration: 800.ms, curve: Curves.elasticOut),
                       
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 20),
                       
                       Text(
                         'RADAR RUSH',
                         style: GoogleFonts.orbitron(
                           color: Colors.white,
-                          fontSize: 32,
+                          fontSize: 28,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 4,
                         ),
@@ -170,12 +170,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         'AUTHORIZE ACCESS',
                         style: GoogleFonts.inter(
                           color: Colors.white54,
-                          fontSize: 14,
+                          fontSize: 12,
                           letterSpacing: 2,
                         ),
                       ),
                       
-                      const SizedBox(height: 60),
+                      const SizedBox(height: 24),
                       
                       if (_isLoading)
                         const CircularProgressIndicator(color: Colors.cyan)
@@ -219,34 +219,33 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ],
 
-                        if (widget.onPlayAsGuest != null) ...[
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            height: 44,
-                            child: OutlinedButton(
-                              onPressed: widget.onPlayAsGuest,
-                              style: OutlinedButton.styleFrom(
-                                side: const BorderSide(color: Colors.cyan, width: 1.5),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                backgroundColor: Colors.cyan.withOpacity(0.05),
-                              ),
-                              child: Text(
-                                'PLAY AS GUEST (OFFLINE)',
-                                style: GoogleFonts.orbitron(
-                                  color: Colors.cyanAccent,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 2,
-                                ),
+                      if (widget.onPlayAsGuest != null) ...[
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 44,
+                          child: OutlinedButton(
+                            onPressed: widget.onPlayAsGuest,
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: Colors.cyan, width: 1.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              backgroundColor: Colors.cyan.withOpacity(0.05),
+                            ),
+                            child: Text(
+                              'PLAY AS GUEST (OFFLINE)',
+                              style: GoogleFonts.orbitron(
+                                color: Colors.cyanAccent,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 2,
                               ),
                             ),
                           ),
-                        ],
+                        ),
                       ],
-                      
-                      const Spacer(),
-                      const SizedBox(height: 40),
+                    ],
+                    
+                    const SizedBox(height: 32),
                       
                       Text(
                         'SECURE TERMINAL CONNECTION',
