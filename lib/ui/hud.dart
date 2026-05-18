@@ -29,15 +29,15 @@ class _HUDState extends State<HUD> {
       final isSmallPhone = size.width < 400;
       final isShortScreen = size.height < 700;
       
+      final safeAreaBottom = MediaQuery.of(context).padding.bottom;
       setState(() {
         panelWidth = isIPad ? 580 : (isSmallPhone ? size.width * 0.9 : 400);
         panelHeight = isIPad ? 260 : (isShortScreen ? 140 : 180);
         
-        // Position panel at the bottom with safe margins, adjusting for height
-        double bottomMargin = isIPad ? 650 : (isShortScreen ? 280 : 380);
+        final bottomMargin = safeAreaBottom + (isIPad ? 30 : (isShortScreen ? 12 : 20));
         panelOffset = Offset(
           (size.width - panelWidth) / 2, 
-          (size.height - bottomMargin).clamp(100.0, size.height - 200.0)
+          size.height - panelHeight - bottomMargin,
         );
       });
     });
