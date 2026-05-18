@@ -13,13 +13,15 @@ import 'core/services/audio_service.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/analytics_service.dart';
 
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'ui/login_screen.dart';
 
 bool _isFirebaseInitialized = false;
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   
   // Phase 1 & 2: Resource, Data & DI Optimization
   await setupServiceLocator();
@@ -34,6 +36,7 @@ void main() async {
   }
   
   await getIt<AudioService>().init();
+  FlutterNativeSplash.remove();
   runApp(const GameApp());
 }
 
