@@ -4,7 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../game/game.dart';
 import '../game/components/airplane.dart';
-import '../game/audio_manager.dart';
+import '../core/service_locator.dart';
+import '../core/services/audio_service.dart';
 
 class HUD extends StatefulWidget {
   final AirplaneLandingGame game;
@@ -95,7 +96,7 @@ class _HUDState extends State<HUD> {
                   icon: Icon(Icons.info_outline, color: Colors.white, size: isIPad ? 40 : (isShortScreen ? 18 : 28)),
                   onPressed: () {
                     widget.game.pauseEngine();
-                    AudioManager.pauseAll();
+                    getIt<AudioService>().pauseAll();
                     widget.game.overlays.add('Instructions');
                   },
                 ),
@@ -353,7 +354,7 @@ class _HUDState extends State<HUD> {
               widget.game.resumeEngine();
             } else {
               widget.game.pauseEngine();
-              AudioManager.stopVoice();
+              getIt<AudioService>().stopVoice();
             }
             setState(() {});
           },
@@ -361,12 +362,12 @@ class _HUDState extends State<HUD> {
         ),
         const SizedBox(width: 4),
         _buildCompactActionBtn(
-          AudioManager.isMuted ? Icons.volume_off : Icons.volume_up,
-          AudioManager.isMuted ? Colors.red : Colors.cyanAccent,
+          getIt<AudioService>().isMuted ? Icons.volume_off : Icons.volume_up,
+          getIt<AudioService>().isMuted ? Colors.red : Colors.cyanAccent,
           () {
-            AudioManager.toggleMute();
-            if (!AudioManager.isMuted) {
-              AudioManager.playRadarBackground();
+            getIt<AudioService>().toggleMute();
+            if (!getIt<AudioService>().isMuted) {
+              getIt<AudioService>().playRadarBackground();
             }
             setState(() {});
           },
@@ -374,9 +375,9 @@ class _HUDState extends State<HUD> {
         ),
         const SizedBox(width: 8),
         _buildCompactActionBtn(
-          AudioManager.isVibrationEnabled ? Icons.vibration : Icons.do_not_disturb,
-          AudioManager.isVibrationEnabled ? Colors.greenAccent : Colors.redAccent,
-          () => setState(() => AudioManager.toggleVibration()),
+          getIt<AudioService>().isVibrationEnabled ? Icons.vibration : Icons.do_not_disturb,
+          getIt<AudioService>().isVibrationEnabled ? Colors.greenAccent : Colors.redAccent,
+          () => setState(() => getIt<AudioService>().toggleVibration()),
           isIPad
         ),
         const SizedBox(width: 8),

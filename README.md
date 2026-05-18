@@ -109,5 +109,39 @@ The **Flight Manual & Info** section includes a functional training deck where y
 - **Successful Takeoff**: 1500 Points
 - **Collision Penalty**: -300 Points
 
+## 🚀 Release Automation & Store Deployment
+
+`Radar Rush` features a robust, automated release engineering pipeline driven by Fastlane and custom shell scripting. This ensures consistent, reproducible production builds for both Android (Google Play Store) and iOS (Apple App Store).
+
+### 📁 Release Directory Structure
+All generated build artifacts are archived under the `releases/` directory in a clean, platform-segmented hierarchy:
+
+```text
+releases/
+└── <platform>/                  # android or ios
+    └── <version>-<build>/       # e.g., 1.1.0-22
+        └── <env>/               # test or prod
+            ├── *.aab            # Production-signed App Bundle (Android only)
+            ├── *.apk            # Installable APK for manual QA (Android only)
+            └── *.ipa            # iOS App Package (iOS only)
+```
+
+### 🛠️ Execution Guide
+To generate a build, simply execute the `release.sh` script with the target platform and environment:
+
+```bash
+# General Usage
+./release.sh <platform> <environment>
+
+# Examples:
+./release.sh android test        # Build and stage Android Closed Testing (AAB & APK)
+./release.sh ios prod            # Build and deploy iOS production build to App Store Connect
+```
+
+### ⚙️ Build System Requirements & Integration
+- **Java Platform (Android)**: The script automatically locates and runs the high-performance **OpenJDK 21** bundled inside Android Studio (`/Applications/Android Studio.app/Contents/jbr/Contents/Home`) to eliminate local compiler mismatch errors.
+- **Dependency Isolation**: All native plugins (such as `flutter_native_splash`) are correctly registered under main dependencies, ensuring clean compilations without build cache leaks.
+- **Fastlane Suite**: Standardized Appfile and Fastfile configuration handles automated compilation, metadata delivery, and track management.
+
 ---
 *Built for the ultimate ATC enthusiast. Managed and polished with precision.*

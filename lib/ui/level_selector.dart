@@ -3,8 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../game/game.dart';
 import '../game/level_config.dart';
-import '../game/audio_manager.dart';
-import '../persistence_manager.dart';
+import '../core/service_locator.dart';
+import '../core/services/persistence_service.dart';
+import '../core/services/audio_service.dart';
 
 class LevelSelector extends StatefulWidget {
   final AirplaneLandingGame game;
@@ -25,9 +26,10 @@ class _LevelSelectorState extends State<LevelSelector> {
   }
 
   Future<void> _loadProgress() async {
-    totalLandings = await PersistenceManager.getTotalLandings();
+    final persistenceService = getIt<PersistenceService>();
+    totalLandings = persistenceService.getTotalLandings();
     for (var level in LevelConfig.allLevels) {
-      final scores = await PersistenceManager.getHighScores(level.iataCode);
+      final scores = await persistenceService.getHighScores(level.iataCode);
       if (scores.isNotEmpty) {
         bestScores[level.iataCode] = scores.first;
       }
@@ -99,7 +101,7 @@ class _LevelSelectorState extends State<LevelSelector> {
           TextButton(
             onPressed: () {
               widget.game.resetToMenu();
-              AudioManager.stopSelectionMusic();
+              getIt<AudioService>().stopSelectionMusic();
             },
             child: Text(
               'BACK TO MAIN MENU', 
@@ -121,8 +123,8 @@ class _LevelSelectorState extends State<LevelSelector> {
 
     return GestureDetector(
       onTap: isUnlocked ? () {
-        AudioManager.stopCrowdAmbiance();
-        AudioManager.playSelectionMusic();
+        getIt<AudioService>().stopCrowdAmbiance();
+        getIt<AudioService>().playSelectionMusic();
         widget.game.loadLevel(level);
         widget.game.startGame();
       } : () {

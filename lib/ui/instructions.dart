@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../game/game.dart';
-import '../game/audio_manager.dart';
+import '../core/service_locator.dart';
+import '../core/services/audio_service.dart';
 
 class InstructionsOverlay extends StatefulWidget {
   final AirplaneLandingGame game;
@@ -18,11 +19,11 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
   void initState() {
     super.initState();
     // Play selection sound once when manual opens
-    AudioManager.playSelectionMusic();
+    getIt<AudioService>().playSelectionMusic();
   }
 
   void _dismissManual() {
-    AudioManager.resumeAll(); // Resume all audio (bgm, sfx)
+    getIt<AudioService>().resumeAll(); // Resume all audio (bgm, sfx)
     widget.game.resumeEngine(); // Resume gameplay loop
     widget.game.overlays.remove('Instructions');
   }
@@ -99,10 +100,10 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
                       ]),
                       const SizedBox(height: 40),
                       _buildSection('AUDIO DICTIONARY', isIPad, [
-                        _buildAudioRow(Icons.radar, 'RADAR PING', 'New aircraft contact detected in your sector.', () => AudioManager.playSfx('radar_ping.mp3'), () => {}, isIPad),
-                        _buildAudioRow(Icons.flight_takeoff, 'TAKEOFF ROAR', 'Aircraft has initiated departure engine power.', () => AudioManager.playTakeoffSound(), () => AudioManager.stopTakeoffSound(), isIPad),
-                        _buildAudioRow(Icons.people, 'AIRPORT CROWD', 'Ambient terminal background atmosphere.', () => AudioManager.playCrowdAmbiance(), () => AudioManager.stopCrowdAmbiance(), isIPad),
-                        _buildAudioRow(Icons.warning, 'CRASH IMPACT', 'Critical alert for mid-air collision.', () => AudioManager.playSfx('plane_crash.wav'), () => {}, isIPad),
+                        _buildAudioRow(Icons.radar, 'RADAR PING', 'New aircraft contact detected in your sector.', () => getIt<AudioService>().playSfx('radar_ping.mp3'), () => {}, isIPad),
+                        _buildAudioRow(Icons.flight_takeoff, 'TAKEOFF ROAR', 'Aircraft has initiated departure engine power.', () => getIt<AudioService>().playTakeoffSound(), () => getIt<AudioService>().stopTakeoffSound(), isIPad),
+                        _buildAudioRow(Icons.people, 'AIRPORT CROWD', 'Ambient terminal background atmosphere.', () => getIt<AudioService>().playCrowdAmbiance(), () => getIt<AudioService>().stopCrowdAmbiance(), isIPad),
+                        _buildAudioRow(Icons.warning, 'CRASH IMPACT', 'Critical alert for mid-air collision.', () => getIt<AudioService>().playSfx('plane_crash.wav'), () => {}, isIPad),
                       ]),
                       const SizedBox(height: 40),
                       _buildSection('SYSTEM SETTINGS', isIPad, [
@@ -122,11 +123,11 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
                                 ),
                               ),
                               Switch(
-                                value: AudioManager.isVibrationEnabled,
+                                value: getIt<AudioService>().isVibrationEnabled,
                                 activeColor: Colors.cyanAccent,
                                 onChanged: (val) {
                                   setState(() {
-                                    AudioManager.isVibrationEnabled = val;
+                                    getIt<AudioService>().isVibrationEnabled = val;
                                   });
                                 },
                               ),
@@ -178,7 +179,7 @@ class _InstructionsOverlayState extends State<InstructionsOverlay> {
                 setState(() => _playingLabel = null);
               } else {
                 if (_playingLabel != null) {
-                   AudioManager.stopAllSfx();
+                   getIt<AudioService>().stopAllSfx();
                 }
                 onPlay();
                 setState(() => _playingLabel = label);

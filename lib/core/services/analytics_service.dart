@@ -3,15 +3,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-class AnalyticsManager {
-  static FirebaseAnalytics? _analytics;
-  static FirebaseAnalyticsObserver? observer;
-  static bool _isInitialized = false;
+class AnalyticsService {
+  FirebaseAnalytics? _analytics;
+  FirebaseAnalyticsObserver? observer;
+  bool _isInitialized = false;
 
-  static Future<void> init() async {
+  Future<void> init() async {
     if (_isInitialized) return;
     try {
-      await Firebase.initializeApp();
       _analytics = FirebaseAnalytics.instance;
       observer = FirebaseAnalyticsObserver(analytics: _analytics!);
       _isInitialized = true;
@@ -23,7 +22,7 @@ class AnalyticsManager {
   }
 
   // Helper to log events safely
-  static Future<void> _logEvent(String name, {Map<String, Object>? parameters}) async {
+  Future<void> _logEvent(String name, {Map<String, Object>? parameters}) async {
     if (!_isInitialized || _analytics == null) return;
     try {
       await _analytics!.logEvent(name: name, parameters: parameters);
@@ -33,7 +32,7 @@ class AnalyticsManager {
   }
 
   // Log App Launch
-  static Future<void> logAppLaunch() async {
+  Future<void> logAppLaunch() async {
     if (!_isInitialized || _analytics == null) return;
     try {
       await _analytics!.logAppOpen();
@@ -50,7 +49,7 @@ class AnalyticsManager {
   }
 
   // Log Screen Size
-  static Future<void> logScreenDetails(Size size) async {
+  Future<void> logScreenDetails(Size size) async {
     await _logEvent(
       'device_screen_size',
       parameters: {
@@ -62,7 +61,7 @@ class AnalyticsManager {
   }
 
   // Log Menu Navigation
-  static Future<void> logMenuView(String menuName) async {
+  Future<void> logMenuView(String menuName) async {
     await _logEvent(
       'menu_view',
       parameters: {
@@ -72,7 +71,7 @@ class AnalyticsManager {
   }
 
   // Log Game Started
-  static Future<void> logGameStarted(String airport, String level) async {
+  Future<void> logGameStarted(String airport, String level) async {
     if (!_isInitialized || _analytics == null) return;
     try {
       await _analytics!.logLevelStart(levelName: level);
@@ -89,7 +88,7 @@ class AnalyticsManager {
   }
 
   // Log Game Over / Milestone
-  static Future<void> logGameOver({
+  Future<void> logGameOver({
     required int score,
     required int landings,
     required int takeoffs,
@@ -115,7 +114,7 @@ class AnalyticsManager {
   }
 
   // Log Audio Settings
-  static Future<void> logAudioToggle(bool isMuted) async {
+  Future<void> logAudioToggle(bool isMuted) async {
     await _logEvent(
       'audio_settings_changed',
       parameters: {
@@ -125,7 +124,7 @@ class AnalyticsManager {
   }
 
   // Log Specific Flight Action
-  static Future<void> logFlightAction(String action, String flightNumber) async {
+  Future<void> logFlightAction(String action, String flightNumber) async {
     await _logEvent(
       'flight_action',
       parameters: {

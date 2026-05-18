@@ -1,16 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart';
 
-class AuthManager {
-  static FirebaseAuth get _auth => FirebaseAuth.instance;
-  static final GoogleSignIn _googleSignIn = GoogleSignIn();
+class AuthService {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  static User? get currentUser => _auth.currentUser;
-  static Stream<User?> get authStateChanges => _auth.authStateChanges();
+  User? get currentUser => _auth.currentUser;
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  static Future<User?> signInWithGoogle() async {
+  Future<User?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return null;
@@ -24,12 +24,12 @@ class AuthManager {
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
       return userCredential.user;
     } catch (e) {
-      print('Error during Google Sign-In: $e');
+      debugPrint('Error during Google Sign-In: $e');
       return null;
     }
   }
 
-  static Future<User?> signInWithApple() async {
+  Future<User?> signInWithApple() async {
     try {
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
@@ -47,12 +47,12 @@ class AuthManager {
       final UserCredential userCredential = await _auth.signInWithCredential(credential);
       return userCredential.user;
     } catch (e) {
-      print('Error during Apple Sign-In: $e');
+      debugPrint('Error during Apple Sign-In: $e');
       return null;
     }
   }
 
-  static Future<User?> signInWithEmail(String email, String password) async {
+  Future<User?> signInWithEmail(String email, String password) async {
     try {
       final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -60,12 +60,12 @@ class AuthManager {
       );
       return userCredential.user;
     } catch (e) {
-      print('Error during Email Sign-In: $e');
+      debugPrint('Error during Email Sign-In: $e');
       rethrow;
     }
   }
 
-  static Future<User?> registerWithEmail(String email, String password) async {
+  Future<User?> registerWithEmail(String email, String password) async {
     try {
       final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -73,12 +73,12 @@ class AuthManager {
       );
       return userCredential.user;
     } catch (e) {
-      print('Error during Email Registration: $e');
+      debugPrint('Error during Email Registration: $e');
       rethrow;
     }
   }
 
-  static Future<void> signOut() async {
+  Future<void> signOut() async {
     await _auth.signOut();
     if (await _googleSignIn.isSignedIn()) {
       await _googleSignIn.signOut();

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../game/game.dart';
-
-import '../game/audio_manager.dart';
-import 'package:radar_rush/auth_manager.dart';
+import '../core/service_locator.dart';
+import '../core/services/audio_service.dart';
+import '../core/services/auth_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class MainMenu extends StatefulWidget {
@@ -22,7 +22,7 @@ class _MainMenuState extends State<MainMenu> {
   void initState() {
     super.initState();
     _loadVersion();
-    AudioManager.playCrowdAmbiance();
+    getIt<AudioService>().playCrowdAmbiance();
   }
 
   Future<void> _loadVersion() async {
@@ -107,7 +107,7 @@ class _MainMenuState extends State<MainMenu> {
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
-                  AudioManager.stopCrowdAmbiance();
+                  getIt<AudioService>().stopCrowdAmbiance();
                   widget.game.overlays.add('Instructions');
                 },
                 child: Text(
@@ -117,7 +117,7 @@ class _MainMenuState extends State<MainMenu> {
               ).animate().fadeIn(delay: 1.5.seconds),
               const SizedBox(height: 10),
               TextButton(
-                onPressed: () => AuthManager.signOut(),
+                onPressed: () => getIt<AuthService>().signOut(),
                 child: Text(
                   'SIGN OUT',
                   style: GoogleFonts.inter(color: Colors.redAccent.withOpacity(0.5), fontSize: 10, letterSpacing: 1),
@@ -138,14 +138,14 @@ class _MainMenuState extends State<MainMenu> {
             ),
             child: IconButton(
               icon: Icon(
-                AudioManager.isMuted ? Icons.volume_off : Icons.volume_up,
-                color: AudioManager.isMuted ? Colors.redAccent : Colors.cyanAccent,
+                getIt<AudioService>().isMuted ? Icons.volume_off : Icons.volume_up,
+                color: getIt<AudioService>().isMuted ? Colors.redAccent : Colors.cyanAccent,
                 size: isIPad ? 32 : 24,
               ),
               onPressed: () {
-                AudioManager.toggleMute();
-                if (!AudioManager.isMuted) {
-                  AudioManager.playCrowdAmbiance();
+                getIt<AudioService>().toggleMute();
+                if (!getIt<AudioService>().isMuted) {
+                  getIt<AudioService>().playCrowdAmbiance();
                 }
                 setState(() {});
               },

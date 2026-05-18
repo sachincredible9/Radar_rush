@@ -7,25 +7,33 @@ import 'ui/level_selector.dart';
 import 'ui/instructions.dart';
 import 'ui/game_over.dart';
 import 'game/game.dart';
-import 'game/audio_manager.dart';
-import 'analytics_manager.dart';
+import 'game/level_config.dart';
+import 'core/service_locator.dart';
+import 'core/services/audio_service.dart';
+import 'core/services/auth_service.dart';
+import 'core/services/analytics_service.dart';
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:radar_rush/auth_manager.dart';
 import 'ui/login_screen.dart';
 
 bool _isFirebaseInitialized = false;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Phase 1 & 2: Resource, Data & DI Optimization
+  await setupServiceLocator();
+  await LevelConfig.loadLevels();
+
   try {
     await Firebase.initializeApp();
     _isFirebaseInitialized = true;
+    await getIt<AnalyticsService>().init();
   } catch (e) {
     debugPrint('Firebase initialization failed: $e');
   }
-  await AnalyticsManager.init();
-  await AudioManager.init();
+  
+  await getIt<AudioService>().init();
   runApp(const GameApp());
 }
 
@@ -39,7 +47,7 @@ class GameApp extends StatelessWidget {
       theme: ThemeData.dark(),
       home: _isFirebaseInitialized 
         ? StreamBuilder(
-            stream: AuthManager.authStateChanges,
+            stream: getIt<AuthService>().authStateChanges,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Scaffold(
@@ -55,27 +63,7 @@ class GameApp extends StatelessWidget {
               return const LoginScreen();
             },
           )
-        : Scaffold(
-            backgroundColor: Colors.black,
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.redAccent, size: 60),
-                  const SizedBox(height: 20),
-                  Text(
-                    'FIREBASE OFFLINE',
-                    style: GoogleFonts.orbitron(color: Colors.white, fontSize: 18),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Check GoogleService-Info.plist in Xcode',
-                    style: TextStyle(color: Colors.white54, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        : const GameScreen(), // Fallback to GameScreen if Firebase is offline
     );
   }
 }
@@ -96,13 +84,14 @@ class _GameScreenState extends State<GameScreen> {
     game = AirplaneLandingGame();
     
     // Log initial app launch metrics
-    AnalyticsManager.logAppLaunch();
+    getIt<AnalyticsService>().logAppLaunch();
     
     // Log screen details after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final size = MediaQuery.of(context).size;
-      AnalyticsManager.logScreenDetails(size);
-      AnalyticsManager.logMenuView('MainMenu');
+      final analytics = getIt<AnalyticsService>();
+      analytics.logScreenDetails(size);
+      analytics.logMenuView('MainMenu');
     });
   }
 

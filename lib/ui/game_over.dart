@@ -3,7 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../game/game.dart';
 import '../game/level_config.dart';
-import '../persistence_manager.dart';
+import '../core/service_locator.dart';
+import '../core/services/persistence_service.dart';
 
 class GameOverOverlay extends StatefulWidget {
   final AirplaneLandingGame game;
@@ -24,12 +25,13 @@ class _GameOverOverlayState extends State<GameOverOverlay> {
   }
 
   Future<void> _checkProgress() async {
-    final scores = await PersistenceManager.getHighScores(widget.game.currentLevel.iataCode);
+    final persistenceService = getIt<PersistenceService>();
+    final scores = await persistenceService.getHighScores(widget.game.currentLevel.iataCode);
     if (scores.isNotEmpty) {
       bestScore = scores.first;
     }
     
-    final totalLandings = await PersistenceManager.getTotalLandings();
+    final totalLandings = persistenceService.getTotalLandings();
     // Check if any NEW level was unlocked in this session
     // (This is a bit simplified, but checks if total landings just crossed a threshold)
     for (var level in LevelConfig.allLevels) {

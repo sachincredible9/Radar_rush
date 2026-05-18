@@ -8,9 +8,10 @@ import 'components/airplane.dart';
 import 'components/airport_map.dart';
 import 'components/gate.dart';
 import 'level_config.dart';
-import 'audio_manager.dart';
-import '../analytics_manager.dart';
-import '../persistence_manager.dart';
+import '../core/service_locator.dart';
+import '../core/services/audio_service.dart';
+import '../core/services/analytics_service.dart';
+import '../core/services/persistence_service.dart';
 
 enum GameState { menu, playing, gameOver, success }
 
@@ -76,8 +77,8 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     selectedPlane = null;
     maxSpeedObserved = planeBaseSpeed;
     
-    AnalyticsManager.logGameStarted(currentLevel.name, difficulty.name);
-    AnalyticsManager.logMenuView('GameView');
+    getIt<AnalyticsService>().logGameStarted(currentLevel.name, difficulty.name);
+    getIt<AnalyticsService>().logMenuView('GameView');
     
     // Clear all components except map
     final planes = world.children.whereType<Airplane>().toList();
@@ -86,12 +87,12 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     overlays.remove('MainMenu');
     overlays.remove('LevelSelector');
     overlays.remove('GameOver');
-    AudioManager.stopCrowdAmbiance();
+    getIt<AudioService>().stopCrowdAmbiance();
     overlays.add('HUD');
-    AudioManager.playRadarBackground();
+    getIt<AudioService>().playRadarBackground();
     // Stop selection music after a short delay to allow it to be heard during transition
     Future.delayed(const Duration(milliseconds: 1500), () {
-      AudioManager.stopSelectionMusic();
+      getIt<AudioService>().stopSelectionMusic();
     });
   }
 
@@ -107,8 +108,8 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     clearWorld();
     overlays.clear();
     overlays.add('MainMenu');
-    AudioManager.stopRadarBackground();
-    AudioManager.stopCrowdAmbiance();
+    getIt<AudioService>().stopRadarBackground();
+    getIt<AudioService>().stopCrowdAmbiance();
   }
 
   void backToLevelSelector() {
@@ -117,8 +118,8 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     overlays.clear();
     overlays.add('LevelSelector');
     
-    AudioManager.stopRadarBackground();
-    AudioManager.playSelectionMusic();
+    getIt<AudioService>().stopRadarBackground();
+    getIt<AudioService>().playSelectionMusic();
   }
 
   void selectPlane(Airplane plane) {
@@ -149,10 +150,19 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
         }
 
         for (int i = 0; i < spawnCount; i++) {
-          // Slight delay between multiple spawns to prevent overlapping sounds
-          Future.delayed(Duration(milliseconds: i * 800), () {
-            if (state == GameState.playing) world.add(Airplane());
-          });
+          if (i == 0) {
+            world.add(Airplane());
+          } else {
+            // Use TimerComponent for staggered spawns to ensure synchronization with game time
+            add(TimerComponent(
+              period: i * 0.8,
+              repeat: false,
+              onTick: () {
+                if (state == GameState.playing) world.add(Airplane());
+              },
+              removeOnFinish: true,
+            ));
+          }
         }
         
         spawnTimer = 0;
@@ -207,11 +217,11 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
 
         // Special Traffic Alerts
         if (milestones[i] == 10000) {
-          AudioManager.announce('Warning: Traffic density increasing.');
+          getIt<AudioService>().announce('Warning: Traffic density increasing.');
         } else if (milestones[i] == 20000) {
-          AudioManager.announce('Caution: Heavy airspace congestion reported.');
+          getIt<AudioService>().announce('Caution: Heavy airspace congestion reported.');
         } else if (milestones[i] == 30000) {
-          AudioManager.announce('Emergency: Maximum traffic load reached. Maintain clearance.');
+          getIt<AudioService>().announce('Emergency: Maximum traffic load reached. Maintain clearance.');
         }
         break;
       }
@@ -220,7 +230,7 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
 
   void _triggerCelebration() {
     final random = Random();
-    AudioManager.playSfx('celebration.mp3');
+    getIt<AudioService>().playSfx('celebration.mp3');
     
     // 1. Glittering Stars (Screen Center)
     camera.viewport.add(
@@ -275,8 +285,8 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
 
     collisionsCount++;
     score = (score - 300).clamp(0, 999999); // -300 points
-    AudioManager.playSfx('plane_crash.wav');
-    AudioManager.vibrate();
+    getIt<AudioService>().playSfx('plane_crash.wav');
+    getIt<AudioService>().vibrate();
     
     if (collisionsCount >= maxCollisions) {
       onGameOver(false);
@@ -288,19 +298,20 @@ class AirplaneLandingGame extends FlameGame with TapCallbacks, HasCollisionDetec
     state = success ? GameState.success : GameState.gameOver;
     overlays.remove('HUD');
     overlays.add('GameOver');
-    if (!success) AudioManager.playSfx('collision.mp3');
+    if (!success) getIt<AudioService>().playSfx('collision.mp3');
 
-    // Save persistence data
-    PersistenceManager.saveScore(currentLevel.iataCode, score);
-    PersistenceManager.incrementTotalLandings(landings);
+    // Save persistence data using DI service
+    final persistenceService = getIt<PersistenceService>();
+    persistenceService.saveScore(currentLevel.iataCode, score);
+    persistenceService.incrementTotalLandings(landings);
 
-    AnalyticsManager.logGameOver(
+    getIt<AnalyticsService>().logGameOver(
       score: score, 
       landings: landings, 
       takeoffs: takeoffs, 
       airport: currentLevel.name, 
       maxSpeedReached: maxSpeedObserved
     );
-    AnalyticsManager.logMenuView('GameOver');
+    getIt<AnalyticsService>().logMenuView('GameOver');
   }
 }

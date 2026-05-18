@@ -13,6 +13,10 @@ export DELIVER_USER="ribheer@gmail.com"
 export DELIVER_PASSWORD="Toronto@12345"
 export FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD="tgjz-rxna-ihcb-eers"
 
+# Export Java Runtime Environment from Android Studio for Gradle/Fastlane
+export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
+
 # Color codes for pretty terminal printing
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -157,45 +161,48 @@ archive_release_build() {
     # 2. Date String
     local date_str=$(date +%Y-%m-%d)
     
-    # 3. Create releases archive folder
-    mkdir -p releases
+    # 3. Create releases archive folder in format releases/<platform>/<version>/<env>
+    local dest_dir="releases/${platform}/${version}/${env}"
+    mkdir -p "$dest_dir"
     
     # 4. Define base archive name: appname_version_date_environment
     local archive_base="Radar_Rush_${version}_${date_str}_${env}"
     
-    log_info "Archiving build artifact to releases/ folder..."
+    log_info "Archiving build artifact to ${dest_dir}/ folder..."
     
     if [ "$platform" = "ios" ]; then
         if [ "$env" = "test" ]; then
             # Search for generated development IPA in ios/
             local dev_ipa=$(find ios -maxdepth 2 -name "*.ipa" | head -n 1)
             if [ -n "$dev_ipa" ] && [ -f "$dev_ipa" ]; then
-                cp "$dev_ipa" "releases/${archive_base}.ipa"
-                log_success "Archived development iOS build to: releases/${archive_base}.ipa"
+                cp "$dev_ipa" "${dest_dir}/${archive_base}.ipa"
+                log_success "Archived development iOS build to: ${dest_dir}/${archive_base}.ipa"
             else
                 if [ -f "build/ios/ipa/Radar Rush.ipa" ]; then
-                    cp "build/ios/ipa/Radar Rush.ipa" "releases/${archive_base}.ipa"
-                    log_success "Archived iOS test build to: releases/${archive_base}.ipa"
+                    cp "build/ios/ipa/Radar Rush.ipa" "${dest_dir}/${archive_base}.ipa"
+                    log_success "Archived iOS test build to: ${dest_dir}/${archive_base}.ipa"
                 else
                     log_warning "Could not find development iOS IPA file to archive."
                 fi
             fi
         elif [ "$env" = "prod" ]; then
             if [ -f "build/ios/ipa/Radar Rush.ipa" ]; then
-                cp "build/ios/ipa/Radar Rush.ipa" "releases/${archive_base}.ipa"
-                log_success "Archived production iOS build to: releases/${archive_base}.ipa"
+                cp "build/ios/ipa/Radar Rush.ipa" "${dest_dir}/${archive_base}.ipa"
+                log_success "Archived production iOS build to: ${dest_dir}/${archive_base}.ipa"
             else
                 log_warning "Could not find production iOS IPA file to archive."
             fi
         fi
     elif [ "$platform" = "android" ]; then
-        if [ -f "build/app/outputs/bundle/release/app-release.aab" ]; then
-            cp "build/app/outputs/bundle/release/app-release.aab" "releases/${archive_base}.aab"
-            log_success "Archived production Android AAB to: releases/${archive_base}.aab"
+        local generated_aab=$(find build/app/outputs/bundle/release -name "*.aab" | head -n 1)
+        if [ -n "$generated_aab" ] && [ -f "$generated_aab" ]; then
+            cp "$generated_aab" "${dest_dir}/${archive_base}.aab"
+            log_success "Archived production Android AAB to: ${dest_dir}/${archive_base}.aab"
         fi
-        if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
-            cp "build/app/outputs/flutter-apk/app-release.apk" "releases/${archive_base}.apk"
-            log_success "Archived Android APK to: releases/${archive_base}.apk"
+        local generated_apk=$(find build/app/outputs/flutter-apk -name "*.apk" | head -n 1)
+        if [ -n "$generated_apk" ] && [ -f "$generated_apk" ]; then
+            cp "$generated_apk" "${dest_dir}/${archive_base}.apk"
+            log_success "Archived Android APK to: ${dest_dir}/${archive_base}.apk"
         fi
     fi
 }

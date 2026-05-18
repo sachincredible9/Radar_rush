@@ -3,20 +3,21 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:vibration/vibration.dart';
-import '../analytics_manager.dart';
+import '../service_locator.dart';
+import 'analytics_service.dart';
 
-class AudioManager {
-  static bool _initialized = false;
-  static final FlutterTts _tts = FlutterTts();
+class AudioService {
+  bool _initialized = false;
+  final FlutterTts _tts = FlutterTts();
 
-  static bool isMuted = false;
-  static bool isVibrationEnabled = true;
+  bool isMuted = false;
+  bool isVibrationEnabled = true;
 
-  static AudioPlayer? _selectionPlayer;
-  static AudioPlayer? _manualTakeoffPlayer;
-  static bool _selectionSoundRequested = false;
+  AudioPlayer? _selectionPlayer;
+  AudioPlayer? _manualTakeoffPlayer;
+  bool _selectionSoundRequested = false;
 
-  static Future<void> init() async {
+  Future<void> init() async {
     if (_initialized) return;
     try {
       await _tts.setLanguage("en-US");
@@ -40,9 +41,9 @@ class AudioManager {
     }
   }
 
-  static void toggleMute() {
+  void toggleMute() {
     isMuted = !isMuted;
-    AnalyticsManager.logAudioToggle(isMuted);
+    getIt<AnalyticsService>().logAudioToggle(isMuted);
     if (isMuted) {
       try {
         FlameAudio.bgm.stop();
@@ -53,47 +54,46 @@ class AudioManager {
     }
   }
 
-  static void playBackground() {
+  void playBackground() {
     if (!_initialized || isMuted) return;
     try {
       FlameAudio.bgm.play('engine_hum.mp3', volume: 0.1);
     } catch (_) {}
   }
 
-  static void playRadarBackground() {
+  void playRadarBackground() {
     if (!_initialized || isMuted) return;
     try {
-      // Loop the radar background music (which contains ATC chatter)
       FlameAudio.bgm.play('radar_music.mp3', volume: 0.3);
     } catch (_) {}
   }
 
-  static void stopRadarBackground() {
+  void stopRadarBackground() {
     try {
       FlameAudio.bgm.stop();
     } catch (_) {}
   }
 
-  static void stopBackground() {
+  void stopBackground() {
     try {
       FlameAudio.bgm.stop();
     } catch (_) {}
   }
 
-  static void playCrowdAmbiance() {
+  void playCrowdAmbiance() {
     if (!_initialized || isMuted) return;
     try {
       FlameAudio.bgm.play('airport_crowd.wav', volume: 0.7);
     } catch (_) {}
   }
 
-  static void stopCrowdAmbiance() {
+  void stopCrowdAmbiance() {
     try {
       FlameAudio.bgm.stop();
     } catch (_) {}
   }
 
-  static void playSelectionMusic() {
+  void playSelectionMusic() {
     if (!_initialized || isMuted) return;
     _selectionSoundRequested = true;
     try {
@@ -107,17 +107,16 @@ class AudioManager {
     } catch (_) {}
   }
 
-  static void stopSelectionMusic() {
+  void stopSelectionMusic() {
     _selectionSoundRequested = false;
     try {
       _selectionPlayer?.stop();
     } catch (_) {}
   }
 
-  static Future<AudioPlayer?> playTakeoffSound() async {
+  Future<AudioPlayer?> playTakeoffSound() async {
     if (!_initialized || isMuted) return null;
     try {
-      // Stop any existing manual player first to prevent stacking
       await _manualTakeoffPlayer?.stop();
       final player = await FlameAudio.play('airplane_takeoff.wav', volume: 1.0);
       _manualTakeoffPlayer = player;
@@ -127,34 +126,32 @@ class AudioManager {
     }
   }
 
-  static void playSfx(String name) {
+  void playSfx(String name) {
     if (!_initialized || isMuted) return;
     try {
       FlameAudio.play(name);
     } catch (_) {}
   }
 
-  static void stopAllSfx() {
-    // This is complex with FlameAudio without tracking every player,
-    // but for the manual we can at least stop known looping/long sounds
+  void stopAllSfx() {
     stopCrowdAmbiance();
     _tts.stop();
   }
 
-  static void stopTakeoffSound() {
+  void stopTakeoffSound() {
     try {
       _manualTakeoffPlayer?.stop();
       _manualTakeoffPlayer = null;
     } catch (_) {}
   }
 
-  static void stopVoice() {
+  void stopVoice() {
     try {
       _tts.stop();
     } catch (_) {}
   }
 
-  static void pauseAll() {
+  void pauseAll() {
     try {
       FlameAudio.bgm.pause();
       _tts.stop();
@@ -162,7 +159,7 @@ class AudioManager {
     } catch (_) {}
   }
 
-  static void resumeAll() {
+  void resumeAll() {
     if (isMuted) return;
     try {
       FlameAudio.bgm.resume();
@@ -170,7 +167,7 @@ class AudioManager {
     } catch (_) {}
   }
 
-  static void announce(String message) {
+  void announce(String message) {
     if (isMuted) return;
     try {
       _tts.stop().then((_) => _tts.speak(message));
@@ -179,15 +176,15 @@ class AudioManager {
     }
   }
 
-  static void toggleVibration() {
+  void toggleVibration() {
     isVibrationEnabled = !isVibrationEnabled;
   }
 
-  static Future<void> vibrate() async {
+  Future<void> vibrate() async {
     if (!isVibrationEnabled) return;
     try {
       if (await Vibration.hasVibrator() ?? false) {
-        Vibration.vibrate(duration: 500); // 0.5s heavy vibration for crash
+        Vibration.vibrate(duration: 500);
       }
     } catch (_) {}
   }

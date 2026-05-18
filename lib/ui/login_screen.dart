@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:radar_rush/auth_manager.dart';
+import '../core/service_locator.dart';
+import '../core/services/auth_service.dart';
 import 'dart:io' show Platform;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -57,9 +58,9 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     try {
       if (_isRegistering) {
-        await AuthManager.registerWithEmail(email, password);
+        await getIt<AuthService>().registerWithEmail(email, password);
       } else {
-        await AuthManager.signInWithEmail(email, password);
+        await getIt<AuthService>().signInWithEmail(email, password);
       }
       // No manual navigation needed. main.dart StreamBuilder will rebuild automatically.
     } catch (e) {
@@ -75,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isLoading = true);
-    final user = await AuthManager.signInWithGoogle();
+    final user = await getIt<AuthService>().signInWithGoogle();
     if (mounted) setState(() => _isLoading = false);
     if (user != null) {
       // main.dart handles navigation automatically
@@ -86,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleAppleSignIn() async {
     setState(() => _isLoading = true);
-    final user = await AuthManager.signInWithApple();
+    final user = await getIt<AuthService>().signInWithApple();
     if (mounted) setState(() => _isLoading = false);
     if (user != null) {
       // main.dart handles navigation

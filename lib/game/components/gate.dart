@@ -3,7 +3,8 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flutter/material.dart';
 import '../game.dart';
-import '../audio_manager.dart';
+import '../../core/service_locator.dart';
+import '../../core/services/audio_service.dart';
 import '../level_config.dart';
 import 'airplane.dart';
 
@@ -76,10 +77,10 @@ class Gate extends PositionComponent with HasGameRef<AirplaneLandingGame>, TapCa
   void onTapDown(TapDownEvent event) {
     if (gameRef.selectedPlane != null) {
       if (isOccupied) {
-        AudioManager.announce('Gate ${config.label} is occupied!');
+        getIt<AudioService>().announce('Gate ${config.label} is occupied!');
       } else {
         gameRef.selectedPlane!.targetGate = config.position;
-        AudioManager.announce('Gate ${config.label} assigned.');
+        getIt<AudioService>().announce('Gate ${config.label} assigned.');
       }
     }
   }
