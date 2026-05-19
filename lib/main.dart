@@ -64,7 +64,13 @@ class _GameAppState extends State<GameApp> {
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark(),
       home: _bypassAuth 
-        ? const GameScreen()
+        ? GameScreen(
+            onSignOut: () {
+              setState(() {
+                _bypassAuth = false;
+              });
+            },
+          )
         : StreamBuilder(
             stream: getIt<AuthService>().authStateChanges,
             builder: (context, snapshot) {
@@ -76,7 +82,15 @@ class _GameAppState extends State<GameApp> {
               }
               
               if (snapshot.hasData) {
-                return const GameScreen();
+                return GameScreen(
+                  onSignOut: () {
+                    // Let the StreamBuilder handle it naturally when FirebaseAuth signs out,
+                    // but also ensure _bypassAuth is reset just in case.
+                    setState(() {
+                      _bypassAuth = false;
+                    });
+                  },
+                );
               }
               
               return LoginScreen(
@@ -93,7 +107,8 @@ class _GameAppState extends State<GameApp> {
 }
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key});
+  final VoidCallback? onSignOut;
+  const GameScreen({super.key, this.onSignOut});
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -125,7 +140,7 @@ class _GameScreenState extends State<GameScreen> {
       body: GameWidget<AirplaneLandingGame>(
         game: game,
         overlayBuilderMap: {
-          'MainMenu': (context, game) => MainMenu(game: game),
+          'MainMenu': (context, game) => MainMenu(game: game, onSignOut: widget.onSignOut),
           'HUD': (context, game) => HUD(game: game),
           'LevelSelector': (context, game) => LevelSelector(game: game),
           'Instructions': (context, game) => InstructionsOverlay(game: game),

@@ -10,7 +10,8 @@ import 'package:in_app_review/in_app_review.dart';
 
 class MainMenu extends StatefulWidget {
   final AirplaneLandingGame game;
-  const MainMenu({super.key, required this.game});
+  final VoidCallback? onSignOut;
+  const MainMenu({super.key, required this.game, this.onSignOut});
 
   @override
   State<MainMenu> createState() => _MainMenuState();
@@ -226,48 +227,53 @@ class _MainMenuState extends State<MainMenu> {
                 if (value == 'review') {
                   _requestReview();
                 } else if (value == 'signout') {
+                  widget.onSignOut?.call();
                   getIt<AuthService>().signOut();
                 } else if (value == 'delete') {
                   _showDeleteConfirmation(context);
                 }
               },
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  enabled: false,
-                  child: Text('Version $_appVersion', style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'review',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.star, color: Colors.amber, size: 20),
-                      const SizedBox(width: 10),
-                      Text('Rate the App', style: GoogleFonts.inter(color: Colors.white)),
-                    ],
+              itemBuilder: (context) {
+                final bool isGuest = getIt<AuthService>().currentUser == null;
+                return [
+                  PopupMenuItem(
+                    enabled: false,
+                    child: Text('Version $_appVersion', style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'signout',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.logout, color: Colors.white, size: 20),
-                      const SizedBox(width: 10),
-                      Text('Sign Out', style: GoogleFonts.inter(color: Colors.white)),
-                    ],
+                  const PopupMenuDivider(),
+                  PopupMenuItem(
+                    value: 'review',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.star, color: Colors.amber, size: 20),
+                        const SizedBox(width: 10),
+                        Text('Rate the App', style: GoogleFonts.inter(color: Colors.white)),
+                      ],
+                    ),
                   ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.delete_forever, color: Colors.redAccent, size: 20),
-                      const SizedBox(width: 10),
-                      Text('Delete Account', style: GoogleFonts.inter(color: Colors.redAccent)),
-                    ],
+                  PopupMenuItem(
+                    value: 'signout',
+                    child: Row(
+                      children: [
+                        Icon(isGuest ? Icons.login : Icons.logout, color: Colors.white, size: 20),
+                        const SizedBox(width: 10),
+                        Text(isGuest ? 'Login / Register' : 'Sign Out', style: GoogleFonts.inter(color: Colors.white)),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  if (!isGuest)
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.delete_forever, color: Colors.redAccent, size: 20),
+                          const SizedBox(width: 10),
+                          Text('Delete Account', style: GoogleFonts.inter(color: Colors.redAccent)),
+                        ],
+                      ),
+                    ),
+                ];
+              },
             ),
           ),
         ).animate().fadeIn(delay: 500.ms),
