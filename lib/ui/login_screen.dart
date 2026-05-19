@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../core/service_locator.dart';
 import '../core/services/auth_service.dart';
 import '../core/services/persistence_service.dart';
@@ -68,9 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter both email and password')),
-      );
+      _showError('Please enter both email and password.');
       return;
     }
 
@@ -85,13 +84,57 @@ class _LoginScreenState extends State<LoginScreen> {
       // No manual navigation needed. main.dart StreamBuilder will rebuild automatically.
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Authentication failed: ${e.toString()}')),
-        );
+        _showError(_getCleanErrorMessage(e));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  String _getCleanErrorMessage(dynamic e) {
+    if (e is FirebaseAuthException) {
+      switch (e.code) {
+        case 'invalid-credential':
+          return 'Incorrect email or password. Please verify your credentials.';
+        case 'user-not-found':
+          return 'No account exists with this email address.';
+        case 'wrong-password':
+          return 'Incorrect password. Please try again.';
+        case 'invalid-email':
+          return 'Please enter a valid email address.';
+        case 'email-already-in-use':
+          return 'This email address is already registered. Try logging in instead.';
+        case 'weak-password':
+          return 'The password is too weak. Please use at least 6 characters.';
+        case 'user-disabled':
+          return 'This account has been disabled. Please contact support.';
+        case 'too-many-requests':
+          return 'Too many login attempts. Please try again in a few minutes.';
+        case 'operation-not-allowed':
+          return 'Email/Password sign-in is not enabled. Please contact support.';
+        case 'network-request-failed':
+          return 'Network connection failed. Please check your internet connection.';
+        default:
+          return e.message ?? 'An unexpected authentication error occurred.';
+      }
+    }
+    
+    final errorStr = e.toString();
+    if (errorStr.contains('invalid-credential')) {
+      return 'Incorrect email or password. Please verify your credentials.';
+    } else if (errorStr.contains('email-already-in-use')) {
+      return 'This email address is already registered. Try logging in instead.';
+    } else if (errorStr.contains('invalid-email')) {
+      return 'Please enter a valid email address.';
+    } else if (errorStr.contains('weak-password')) {
+      return 'The password is too weak. Please use at least 6 characters.';
+    } else if (errorStr.contains('network-request-failed')) {
+      return 'Network connection failed. Please check your internet connection.';
+    }
+    
+    // Clean up generic Firebase brackets: e.g. [firebase_auth/invalid-credential] Message -> Message
+    final regex = RegExp(r'^\[[^\]]+\]\s*');
+    return errorStr.replaceAll(regex, '');
   }
 
   Future<void> _handleGoogleSignIn() async {
@@ -117,10 +160,29 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showError(String message) {
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: GoogleFonts.inter()),
-        backgroundColor: Colors.redAccent,
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.redAccent.shade700.withOpacity(0.9),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
       ),
     );
   }
