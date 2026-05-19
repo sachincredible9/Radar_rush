@@ -6,6 +6,7 @@ import '../core/service_locator.dart';
 import '../core/services/audio_service.dart';
 import '../core/services/auth_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:in_app_review/in_app_review.dart';
 
 class MainMenu extends StatefulWidget {
   final AirplaneLandingGame game;
@@ -17,6 +18,13 @@ class MainMenu extends StatefulWidget {
 
 class _MainMenuState extends State<MainMenu> {
   String _appVersion = '';
+  final InAppReview _inAppReview = InAppReview.instance;
+
+  Future<void> _requestReview() async {
+    if (await _inAppReview.isAvailable()) {
+      _inAppReview.requestReview();
+    }
+  }
 
   @override
   void initState() {
@@ -168,42 +176,7 @@ class _MainMenuState extends State<MainMenu> {
                   style: GoogleFonts.inter(color: Colors.cyanAccent, fontSize: isIPad ? 16 : 12, letterSpacing: 2, fontWeight: FontWeight.bold),
                 ),
               ).animate().fadeIn(delay: 1.5.seconds),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => getIt<AuthService>().signOut(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white12,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: EdgeInsets.symmetric(horizontal: isIPad ? 24 : 16, vertical: isIPad ? 12 : 8),
-                    ),
-                    child: Text(
-                      'SIGN OUT',
-                      style: GoogleFonts.inter(fontSize: isIPad ? 14 : 10, letterSpacing: 1, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  SizedBox(width: isIPad ? 20 : 12),
-                  ElevatedButton(
-                    onPressed: () => _showDeleteConfirmation(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent.withOpacity(0.15),
-                      foregroundColor: Colors.redAccent,
-                      elevation: 0,
-                      side: BorderSide(color: Colors.redAccent.withOpacity(0.4)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      padding: EdgeInsets.symmetric(horizontal: isIPad ? 24 : 16, vertical: isIPad ? 12 : 8),
-                    ),
-                    child: Text(
-                      'DELETE ACCOUNT',
-                      style: GoogleFonts.inter(fontSize: isIPad ? 14 : 10, letterSpacing: 1, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ).animate().fadeIn(delay: 2.seconds),
+
             ],
           ),
         ),
@@ -234,15 +207,70 @@ class _MainMenuState extends State<MainMenu> {
           ),
         ).animate().fadeIn(delay: 500.ms),
         
-        // Version Tag at Bottom Left
+        // Hamburger Menu at Top Left
         Positioned(
-          bottom: 10,
-          left: 10,
-          child: Text(
-            _appVersion,
-            style: GoogleFonts.inter(color: Colors.white24, fontSize: 10, letterSpacing: 1),
+          top: isIPad ? 60 : 40,
+          left: isIPad ? 40 : 20,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.black45,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.cyan.withOpacity(0.5)),
+            ),
+            child: PopupMenuButton<String>(
+              icon: Icon(Icons.menu, color: Colors.cyanAccent, size: isIPad ? 32 : 24),
+              color: Colors.grey[900],
+              offset: const Offset(0, 50),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              onSelected: (value) {
+                if (value == 'review') {
+                  _requestReview();
+                } else if (value == 'signout') {
+                  getIt<AuthService>().signOut();
+                } else if (value == 'delete') {
+                  _showDeleteConfirmation(context);
+                }
+              },
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  enabled: false,
+                  child: Text('Version $_appVersion', style: GoogleFonts.inter(color: Colors.white54, fontSize: 12)),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'review',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.star, color: Colors.amber, size: 20),
+                      const SizedBox(width: 10),
+                      Text('Rate the App', style: GoogleFonts.inter(color: Colors.white)),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'signout',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.logout, color: Colors.white, size: 20),
+                      const SizedBox(width: 10),
+                      Text('Sign Out', style: GoogleFonts.inter(color: Colors.white)),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete_forever, color: Colors.redAccent, size: 20),
+                      const SizedBox(width: 10),
+                      Text('Delete Account', style: GoogleFonts.inter(color: Colors.redAccent)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ).animate().fadeIn(delay: 500.ms),
       ],
     );
   }
