@@ -5,6 +5,7 @@ import '../core/service_locator.dart';
 import '../core/services/auth_service.dart';
 import '../core/services/persistence_service.dart';
 import 'dart:io' show Platform;
+import 'dart:ui' show ImageFilter;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'level_selector.dart';
@@ -155,6 +156,32 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
+
+          // Colored background light blobs for liquid glassmorphism depth
+          Positioned(
+            top: -80,
+            left: -80,
+            child: Container(
+              width: 320,
+              height: 320,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.cyan.withOpacity(0.12),
+              ),
+            ),
+          ).animate().fadeIn(duration: 1.seconds),
+          Positioned(
+            bottom: 40,
+            right: -60,
+            child: Container(
+              width: 280,
+              height: 280,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.deepPurple.withOpacity(0.12),
+              ),
+            ),
+          ).animate().fadeIn(duration: 1.seconds),
           
           SafeArea(
             child: SingleChildScrollView(
@@ -210,86 +237,127 @@ class _LoginScreenState extends State<LoginScreen> {
                       
                       const SizedBox(height: 24),
                       
-                      if (widget.onPlayAsGuest != null) ...[
-                        SizedBox(
-                          width: double.infinity,
-                          height: 44,
-                          child: ElevatedButton(
-                            onPressed: widget.onPlayAsGuest,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.cyan,
-                              foregroundColor: Colors.black,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 0,
-                            ),
-                            child: Text(
-                              'PLAY AS GUEST',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.orbitron(
-                                fontSize: isTablet ? 14 : 12,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
+                      // Liquid Glass Card
+                      Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.08),
+                            width: 1.5,
                           ),
-                        ),
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Row(
-                            children: [
-                              Expanded(child: Divider(color: Colors.white24)),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10),
-                                child: Text('OR LOGIN TO SAVE PROGRESS', style: TextStyle(color: Colors.white24, fontSize: 11)),
-                              ),
-                              Expanded(child: Divider(color: Colors.white24)),
-                            ],
-                          ),
-                        ),
-                      ],
-
-                      if (_isLoading)
-                        const CircularProgressIndicator(color: Colors.cyan)
-                      else ...[
-                        // Form Section for Email/Password
-                        _buildEmailForm(),
-                        
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Row(
-                            children: [
-                              Expanded(child: Divider(color: Colors.white24)),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10),
-                                child: Text('OR', style: TextStyle(color: Colors.white24, fontSize: 11)),
-                              ),
-                              Expanded(child: Divider(color: Colors.white24)),
-                            ],
-                          ),
-                        ),
-
-                        if (Platform.isIOS) ...[
-                          // Apple first on iOS
-                          SignInWithAppleButton(
-                            onPressed: _handleAppleSignIn,
-                            style: SignInWithAppleButtonStyle.whiteOutlined,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildGoogleButton(),
-                        ] else ...[
-                          // Google first on Android/Others
-                          _buildGoogleButton(),
-                          if (Platform.isIOS || Platform.isMacOS) ...[
-                            const SizedBox(height: 12),
-                            SignInWithAppleButton(
-                              onPressed: _handleAppleSignIn,
-                              style: SignInWithAppleButtonStyle.whiteOutlined,
-                              borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.4),
+                              blurRadius: 30,
+                              offset: const Offset(0, 15),
                             ),
                           ],
-                        ],
-                      ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                            child: Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    // Premium dark glass with gradient
+                                    // When blur is not supported, this acts as a elegant flat fallback
+                                    Colors.grey[950]!.withOpacity(0.7),
+                                    Colors.black.withOpacity(0.85),
+                                  ],
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (widget.onPlayAsGuest != null) ...[
+                                    SizedBox(
+                                      width: double.infinity,
+                                      height: 44,
+                                      child: ElevatedButton(
+                                        onPressed: widget.onPlayAsGuest,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.cyan,
+                                          foregroundColor: Colors.black,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          elevation: 0,
+                                        ),
+                                        child: Text(
+                                          'PLAY AS GUEST',
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.orbitron(
+                                            fontSize: isTablet ? 14 : 12,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 1.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 16),
+                                      child: Row(
+                                        children: [
+                                          Expanded(child: Divider(color: Colors.white12)),
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 10),
+                                            child: Text('OR LOGIN TO SAVE PROGRESS', style: TextStyle(color: Colors.white30, fontSize: 10)),
+                                          ),
+                                          Expanded(child: Divider(color: Colors.white12)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+
+                                  if (_isLoading)
+                                    const CircularProgressIndicator(color: Colors.cyan)
+                                  else ...[
+                                    _buildEmailForm(),
+                                    
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 16),
+                                      child: Row(
+                                        children: [
+                                          Expanded(child: Divider(color: Colors.white12)),
+                                          Padding(
+                                            padding: EdgeInsets.symmetric(horizontal: 10),
+                                            child: Text('OR', style: TextStyle(color: Colors.white30, fontSize: 10)),
+                                          ),
+                                          Expanded(child: Divider(color: Colors.white12)),
+                                        ],
+                                      ),
+                                    ),
+
+                                    if (Platform.isIOS) ...[
+                                      SignInWithAppleButton(
+                                        onPressed: _handleAppleSignIn,
+                                        style: SignInWithAppleButtonStyle.whiteOutlined,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildGoogleButton(),
+                                    ] else ...[
+                                      _buildGoogleButton(),
+                                      if (Platform.isIOS || Platform.isMacOS) ...[
+                                        const SizedBox(height: 12),
+                                        SignInWithAppleButton(
+                                          onPressed: _handleAppleSignIn,
+                                          style: SignInWithAppleButtonStyle.whiteOutlined,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ],
+                                    ],
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                       
                       const SizedBox(height: 24),
                       
