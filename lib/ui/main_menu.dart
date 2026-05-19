@@ -92,7 +92,7 @@ class _MainMenuState extends State<MainMenu> {
           child: Image.asset(
             'assets/images/airport_london.jpg',
             fit: BoxFit.cover,
-            color: Colors.black.withOpacity(0.6),
+            color: Colors.black.withOpacity(0.85), // Darkened for better contrast
             colorBlendMode: BlendMode.darken,
           ),
         ),
@@ -132,7 +132,7 @@ class _MainMenuState extends State<MainMenu> {
                 'GLOBAL ATC MANAGEMENT',
                 style: GoogleFonts.inter(
                   color: Colors.cyan,
-                  fontSize: 14,
+                  fontSize: isIPad ? 18 : 14,
                   letterSpacing: 4,
                 ),
               ).animate().fadeIn(delay: 500.ms),
@@ -140,44 +140,66 @@ class _MainMenuState extends State<MainMenu> {
               ElevatedButton(
                 onPressed: () => widget.game.overlays.add('LevelSelector'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
+                  backgroundColor: Colors.cyan.withOpacity(0.15),
                   side: const BorderSide(color: Colors.cyan, width: 2),
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                  padding: EdgeInsets.symmetric(horizontal: isIPad ? 60 : 40, vertical: isIPad ? 30 : 20),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  elevation: 0,
                 ),
                 child: Text(
                   'SELECT RUNWAY',
-                  style: GoogleFonts.orbitron(color: Colors.white, fontSize: 18),
+                  style: GoogleFonts.orbitron(color: Colors.white, fontSize: isIPad ? 24 : 18, fontWeight: FontWeight.bold),
                 ),
               ).animate().scale(delay: 1.seconds).shimmer(duration: 2.seconds),
-              const SizedBox(height: 20),
-              TextButton(
+              const SizedBox(height: 24),
+              OutlinedButton(
                 onPressed: () {
                   getIt<AudioService>().stopCrowdAmbiance();
                   widget.game.overlays.add('Instructions');
                 },
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.black.withOpacity(0.6),
+                  side: BorderSide(color: Colors.cyan.withOpacity(0.5)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: EdgeInsets.symmetric(horizontal: isIPad ? 36 : 24, vertical: isIPad ? 18 : 12),
+                ),
                 child: Text(
                   'FLIGHT MANUAL & INFO',
-                  style: GoogleFonts.inter(color: Colors.cyan.withOpacity(0.7), fontSize: 12, letterSpacing: 2),
+                  style: GoogleFonts.inter(color: Colors.cyanAccent, fontSize: isIPad ? 16 : 12, letterSpacing: 2, fontWeight: FontWeight.bold),
                 ),
               ).animate().fadeIn(delay: 1.5.seconds),
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TextButton(
+                  ElevatedButton(
                     onPressed: () => getIt<AuthService>().signOut(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white12,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: EdgeInsets.symmetric(horizontal: isIPad ? 24 : 16, vertical: isIPad ? 12 : 8),
+                    ),
                     child: Text(
                       'SIGN OUT',
-                      style: GoogleFonts.inter(color: Colors.white54, fontSize: 10, letterSpacing: 1),
+                      style: GoogleFonts.inter(fontSize: isIPad ? 14 : 10, letterSpacing: 1, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  TextButton(
+                  SizedBox(width: isIPad ? 20 : 12),
+                  ElevatedButton(
                     onPressed: () => _showDeleteConfirmation(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent.withOpacity(0.15),
+                      foregroundColor: Colors.redAccent,
+                      elevation: 0,
+                      side: BorderSide(color: Colors.redAccent.withOpacity(0.4)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: EdgeInsets.symmetric(horizontal: isIPad ? 24 : 16, vertical: isIPad ? 12 : 8),
+                    ),
                     child: Text(
                       'DELETE ACCOUNT',
-                      style: GoogleFonts.inter(color: Colors.redAccent.withOpacity(0.7), fontSize: 10, letterSpacing: 1),
+                      style: GoogleFonts.inter(fontSize: isIPad ? 14 : 10, letterSpacing: 1, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
