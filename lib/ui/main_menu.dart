@@ -34,6 +34,52 @@ class _MainMenuState extends State<MainMenu> {
     }
   }
 
+  Future<void> _showDeleteConfirmation(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          title: Text(
+            'DELETE ACCOUNT?',
+            style: GoogleFonts.orbitron(color: Colors.redAccent, fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            'Are you sure you want to delete your account? This action cannot be undone and will permanently remove your progress and data.',
+            style: GoogleFonts.inter(color: Colors.white70),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('CANCEL', style: GoogleFonts.inter(color: Colors.white54)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('DELETE', style: GoogleFonts.inter(color: Colors.redAccent)),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                try {
+                  await getIt<AuthService>().deleteAccount();
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to delete account. Please re-authenticate and try again.', style: GoogleFonts.inter()),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -116,12 +162,25 @@ class _MainMenuState extends State<MainMenu> {
                 ),
               ).animate().fadeIn(delay: 1.5.seconds),
               const SizedBox(height: 10),
-              TextButton(
-                onPressed: () => getIt<AuthService>().signOut(),
-                child: Text(
-                  'SIGN OUT',
-                  style: GoogleFonts.inter(color: Colors.redAccent.withOpacity(0.5), fontSize: 10, letterSpacing: 1),
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () => getIt<AuthService>().signOut(),
+                    child: Text(
+                      'SIGN OUT',
+                      style: GoogleFonts.inter(color: Colors.white54, fontSize: 10, letterSpacing: 1),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  TextButton(
+                    onPressed: () => _showDeleteConfirmation(context),
+                    child: Text(
+                      'DELETE ACCOUNT',
+                      style: GoogleFonts.inter(color: Colors.redAccent.withOpacity(0.7), fontSize: 10, letterSpacing: 1),
+                    ),
+                  ),
+                ],
               ).animate().fadeIn(delay: 2.seconds),
             ],
           ),

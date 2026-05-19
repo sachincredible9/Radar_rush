@@ -192,6 +192,44 @@ class _LoginScreenState extends State<LoginScreen> {
                       
                       const SizedBox(height: 24),
                       
+                      if (widget.onPlayAsGuest != null) ...[
+                        SizedBox(
+                          width: double.infinity,
+                          height: 44,
+                          child: ElevatedButton(
+                            onPressed: widget.onPlayAsGuest,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.cyan,
+                              foregroundColor: Colors.black,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'PLAY AS GUEST',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.orbitron(
+                                fontSize: isTablet ? 14 : 12,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Row(
+                            children: [
+                              Expanded(child: Divider(color: Colors.white24)),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 10),
+                                child: Text('OR LOGIN TO SAVE PROGRESS', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                              ),
+                              Expanded(child: Divider(color: Colors.white24)),
+                            ],
+                          ),
+                        ),
+                      ],
+
                       if (_isLoading)
                         const CircularProgressIndicator(color: Colors.cyan)
                       else ...[
@@ -216,7 +254,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           // Apple first on iOS
                           SignInWithAppleButton(
                             onPressed: _handleAppleSignIn,
-                            style: SignInWithAppleButtonStyle.black,
+                            style: SignInWithAppleButtonStyle.whiteOutlined,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           const SizedBox(height: 12),
@@ -228,37 +266,11 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(height: 12),
                             SignInWithAppleButton(
                               onPressed: _handleAppleSignIn,
-                              style: SignInWithAppleButtonStyle.black,
+                              style: SignInWithAppleButtonStyle.whiteOutlined,
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ],
                         ],
-                      ],
-
-                      if (widget.onPlayAsGuest != null) ...[
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 44,
-                          child: OutlinedButton(
-                            onPressed: widget.onPlayAsGuest,
-                            style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: Colors.cyan, width: 1.5),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              backgroundColor: Colors.cyan.withOpacity(0.05),
-                            ),
-                            child: Text(
-                              'PLAY AS GUEST (OFFLINE)',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.orbitron(
-                                color: Colors.cyanAccent,
-                                fontSize: isTablet ? 14 : 12,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 2,
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                       
                       const SizedBox(height: 24),

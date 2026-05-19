@@ -48,20 +48,10 @@ class AuthService {
       return null;
     }
     try {
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
-
-      final OAuthProvider oAuthProvider = OAuthProvider('apple.com');
-      final AuthCredential credential = oAuthProvider.credential(
-        idToken: appleCredential.identityToken,
-        accessToken: appleCredential.authorizationCode,
-      );
-
-      final UserCredential userCredential = await auth.signInWithCredential(credential);
+      final appleProvider = AppleAuthProvider();
+      appleProvider.addScope('email');
+      appleProvider.addScope('name');
+      final UserCredential userCredential = await auth.signInWithProvider(appleProvider);
       return userCredential.user;
     } catch (e) {
       debugPrint('Error during Apple Sign-In: $e');
@@ -101,6 +91,16 @@ class AuthService {
       return userCredential.user;
     } catch (e) {
       debugPrint('Error during Email Registration: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      await _auth?.currentUser?.delete();
+      await signOut();
+    } catch (e) {
+      debugPrint('Error during Account Deletion: $e');
       rethrow;
     }
   }
