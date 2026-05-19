@@ -9,6 +9,38 @@ class PersistenceService {
   static const String _highScoresKey = 'high_scores_';
   static const String _unlockedLevelsKey = 'unlocked_levels';
   static const String _totalLandingsKey = 'total_landings';
+  static const String _rememberMeKey = 'remember_me';
+  static const String _savedEmailKey = 'saved_email';
+  static const String _savedPasswordKey = 'saved_password';
+
+  Future<void> saveCredentials(String email, String password, bool rememberMe) async {
+    await _prefs.setBool(_rememberMeKey, rememberMe);
+    if (rememberMe) {
+      await _prefs.setString(_savedEmailKey, email);
+      await _prefs.setString(_savedPasswordKey, password);
+    } else {
+      await _prefs.remove(_savedEmailKey);
+      await _prefs.remove(_savedPasswordKey);
+    }
+  }
+
+  bool getRememberMe() {
+    return _prefs.getBool(_rememberMeKey) ?? false;
+  }
+
+  String getSavedEmail() {
+    return _prefs.getString(_savedEmailKey) ?? '';
+  }
+
+  String getSavedPassword() {
+    return _prefs.getString(_savedPasswordKey) ?? '';
+  }
+
+  Future<void> clearSavedCredentials() async {
+    await _prefs.remove(_rememberMeKey);
+    await _prefs.remove(_savedEmailKey);
+    await _prefs.remove(_savedPasswordKey);
+  }
 
   Future<void> saveScore(String airportId, int score) async {
     List<int> scores = await getHighScores(airportId);

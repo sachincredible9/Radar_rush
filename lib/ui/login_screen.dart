@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../core/service_locator.dart';
 import '../core/services/auth_service.dart';
+import '../core/services/persistence_service.dart';
 import 'dart:io' show Platform;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -22,11 +23,27 @@ class _LoginScreenState extends State<LoginScreen> {
   String _appVersion = '';
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _rememberMe = false;
 
   @override
   void initState() {
     super.initState();
     _loadVersion();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    final persistence = getIt<PersistenceService>();
+    final remember = persistence.getRememberMe();
+    if (remember) {
+      _emailController.text = persistence.getSavedEmail();
+      _passwordController.text = persistence.getSavedPassword();
+      if (mounted) {
+        setState(() {
+          _rememberMe = true;
+        });
+      }
+    }
   }
 
   @override
@@ -63,6 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         await getIt<AuthService>().signInWithEmail(email, password);
       }
+      await getIt<PersistenceService>().saveCredentials(email, password, _rememberMe);
       // No manual navigation needed. main.dart StreamBuilder will rebuild automatically.
     } catch (e) {
       if (mounted) {
@@ -319,7 +337,46 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: Icons.lock_outline,
           isPassword: true,
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: _rememberMe,
+                activeColor: Colors.cyanAccent,
+                checkColor: Colors.black,
+                side: const BorderSide(color: Colors.white30, width: 1.5),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                onChanged: (value) {
+                  setState(() {
+                    _rememberMe = value ?? false;
+                  });
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _rememberMe = !_rememberMe;
+                });
+              },
+              child: Text(
+                'REMEMBER ME',
+                style: GoogleFonts.orbitron(
+                  color: Colors.white70,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
           height: 44,
@@ -332,7 +389,7 @@ class _LoginScreenState extends State<LoginScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
-            child: Text(_isRegistering ? 'INITIALIZE ACCOUNT' : 'AUTHORIZE LOGIN', style: GoogleFonts.orbitron(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+            child: Text(_isRegistering ? 'INITIALIZE ACCOUNT' : 'LOGIN', style: GoogleFonts.orbitron(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
           ),
         ),
         TextButton(
