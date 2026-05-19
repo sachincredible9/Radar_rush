@@ -267,7 +267,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   colors: [
                                     // Premium dark glass with gradient
                                     // When blur is not supported, this acts as a elegant flat fallback
-                                    Colors.grey[950]!.withOpacity(0.7),
+                                    const Color(0xFF0C0C0E).withOpacity(0.7),
                                     Colors.black.withOpacity(0.85),
                                   ],
                                 ),
