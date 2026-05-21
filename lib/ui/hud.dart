@@ -191,9 +191,6 @@ class _HUDState extends State<HUD> {
   Widget _buildMobileStatsBar(Airplane? selectedPlane, double baseFontSize, double headerFontSize, bool isPaused, bool isShortScreen) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final double availableWidth = constraints.maxWidth;
-        final bool isVeryNarrow = availableWidth < 360;
-        
         return Container(
           padding: EdgeInsets.symmetric(horizontal: isShortScreen ? 8 : 12, vertical: isShortScreen ? 6 : 10),
           decoration: _topBarDecoration(),

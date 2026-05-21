@@ -1,6 +1,5 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'ui/main_menu.dart';
 import 'ui/hud.dart';
 import 'ui/level_selector.dart';

@@ -100,7 +100,27 @@ class AuthService {
   Future<void> deleteAccount() async {
     try {
       await getIt<PersistenceService>().clearSavedCredentials();
-      await _auth?.currentUser?.delete();
+      
+      final user = _auth?.currentUser;
+      if (user != null) {
+        final isAppleUser = user.providerData.any((userInfo) => userInfo.providerId == 'apple.com');
+        final isAppleSupported = !kIsWeb && await SignInWithApple.isAvailable();
+
+        if (isAppleUser && isAppleSupported) {
+          // Trigger Apple Sign-In again to get a fresh authorization code for token revocation
+          final credential = await SignInWithApple.getAppleIDCredential(
+            scopes: [
+              AppleIDAuthorizationScopes.email,
+              AppleIDAuthorizationScopes.fullName,
+            ],
+          );
+          final authorizationCode = credential.authorizationCode;
+          await _auth?.revokeTokenWithAuthorizationCode(authorizationCode);
+        }
+
+        await user.delete();
+      }
+      
       await signOut();
     } catch (e) {
       debugPrint('Error during Account Deletion: $e');

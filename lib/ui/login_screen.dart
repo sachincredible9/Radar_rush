@@ -5,11 +5,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../core/service_locator.dart';
 import '../core/services/auth_service.dart';
 import '../core/services/persistence_service.dart';
-import 'dart:io' show Platform;
 import 'dart:ui' show ImageFilter;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
-import 'level_selector.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback? onPlayAsGuest;
@@ -191,6 +190,9 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
+    
+    final bool isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final bool isMacOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS;
     
     // Sleek responsive sizes
     final double paddingHorizontal = isTablet ? 80.0 : 32.0;
@@ -394,7 +396,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       ),
                                     ),
 
-                                    if (Platform.isIOS) ...[
+                                    if (isIOS) ...[
                                       SignInWithAppleButton(
                                         onPressed: _handleAppleSignIn,
                                         style: SignInWithAppleButtonStyle.whiteOutlined,
@@ -404,7 +406,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       _buildGoogleButton(),
                                     ] else ...[
                                       _buildGoogleButton(),
-                                      if (Platform.isIOS || Platform.isMacOS) ...[
+                                      if (isIOS || isMacOS) ...[
                                         const SizedBox(height: 12),
                                         SignInWithAppleButton(
                                           onPressed: _handleAppleSignIn,
