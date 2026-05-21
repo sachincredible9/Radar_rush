@@ -107,15 +107,19 @@ class AuthService {
         final isAppleSupported = !kIsWeb && await SignInWithApple.isAvailable();
 
         if (isAppleUser && isAppleSupported) {
-          // Trigger Apple Sign-In again to get a fresh authorization code for token revocation
-          final credential = await SignInWithApple.getAppleIDCredential(
-            scopes: [
-              AppleIDAuthorizationScopes.email,
-              AppleIDAuthorizationScopes.fullName,
-            ],
-          );
-          final authorizationCode = credential.authorizationCode;
-          await _auth?.revokeTokenWithAuthorizationCode(authorizationCode);
+          try {
+            // Trigger Apple Sign-In again to get a fresh authorization code for token revocation
+            final credential = await SignInWithApple.getAppleIDCredential(
+              scopes: [
+                AppleIDAuthorizationScopes.email,
+                AppleIDAuthorizationScopes.fullName,
+              ],
+            );
+            final authorizationCode = credential.authorizationCode;
+            await _auth?.revokeTokenWithAuthorizationCode(authorizationCode);
+          } catch (appleError) {
+            debugPrint('Apple token revocation failed, proceeding with account deletion anyway: $appleError');
+          }
         }
 
         await user.delete();
