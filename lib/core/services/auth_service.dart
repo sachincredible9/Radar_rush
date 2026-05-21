@@ -122,6 +122,15 @@ class AuthService {
           }
         }
 
+        final isGoogleUser = user.providerData.any((userInfo) => userInfo.providerId == 'google.com');
+        if (isGoogleUser) {
+          try {
+            await _googleSignIn.disconnect();
+          } catch (googleError) {
+            debugPrint('Google disconnect failed, proceeding with account deletion anyway: $googleError');
+          }
+        }
+
         await user.delete();
       }
       
